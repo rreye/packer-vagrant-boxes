@@ -35,10 +35,9 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ inputs.architecture }}])
-
+    name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ matrix.architecture }}])
     # GitHub runner
-    runs-on: "${{ inputs.architecture == 'arm64' ? 'macos-15' : 'ubuntu-24.04' }}"
+    runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
     strategy:
       # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
@@ -46,6 +45,7 @@ jobs:
       # Create parallel jobs based on your 'provider' choice
       matrix:
         provider: ${{ fromJSON(inputs.provider == 'all' && '["vagrant-vbox", "vagrant-vmware", "vagrant-libvirt"]' || format('["{0}"]', inputs.provider)) }}
+        architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
       - name: 1. Checkout code
