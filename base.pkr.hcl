@@ -43,10 +43,12 @@ source "vagrant" "virtualbox" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "virtualbox"
-  template     = "./Vagrantfile.template"
+  template     = "../Vagrantfile.template"
   skip_add     = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = "vagrant"
+  ssh_password = "vagrant"
   ssh_timeout  = "20m"
 }
 
@@ -54,10 +56,12 @@ source "vagrant" "vmware" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
-  template     = "./Vagrantfile.template"
+  template     = "../Vagrantfile.template"
   skip_add     = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = "vagrant"
+  ssh_password = "vagrant"
   ssh_timeout  = "20m"
 }
 
@@ -65,10 +69,12 @@ source "vagrant" "libvirt" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
-  template     = "./Vagrantfile.template"
+  template     = "../Vagrantfile.template"
   skip_add     = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = "vagrant"
+  ssh_password = "vagrant"
   ssh_timeout  = "20m"
 }
 
@@ -82,9 +88,9 @@ build {
     "source.vagrant.libvirt"
   ]
 
-  # --- This is where you do your customization ---
+  # --- Customization ---
   provisioner "shell" {
-    execute_command = "{{.Vars}} /bin/bash '{{.Path}}'"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'"
     scripts = var.provision_scripts
     expect_disconnect = true
     timeout         = "15m"
