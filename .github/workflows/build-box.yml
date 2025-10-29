@@ -135,12 +135,15 @@ jobs:
           echo "Changing to directory: ${{ inputs.box_name }}"
           cd ${{ inputs.box_name }}
 
+          echo "Initializing Packer plugins..."
+          packer init ../base.pkr.hcl
+
           echo "Validating Packer template..."
           # Packer IS pre-installed on the runner
           packer validate ../base.pkr.hcl
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
-          packer build -var="build_arch=${{ inputs.architecture }}" -only="${{ matrix.provider }}.*" ../packer/base.pkr.hcl
+          packer build -var="build_arch=${{ inputs.architecture }}" -only="${{ matrix.provider }}.*" ../base.pkr.hcl
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: 5. Upload Artifact
