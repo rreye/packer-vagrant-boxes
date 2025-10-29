@@ -124,7 +124,7 @@ jobs:
             curl -L -o vmware.bundle "$VMWARE_URL_AMD"
             chmod +x vmware.bundle
             echo "Installing VMware..."
-            sudo ./vmware.bundle --console -s --required --eulas-agreed
+            sudo ./vmware.bundle --console --required --eulas-agreed
           fi
           echo "VMware installed."
           vmware --version
