@@ -39,7 +39,7 @@ variable "build_arch" {
 }
 
 # --- 2. Builder Definitions (Sources) ---
-source "vagrant" "vagrant-vbox" {
+source "vagrant" "virtualbox" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "virtualbox"
@@ -50,7 +50,7 @@ source "vagrant" "vagrant-vbox" {
   ssh_timeout  = "20m"
 }
 
-source "vagrant" "vagrant-vmware" {
+source "vagrant" "vmware" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
@@ -61,7 +61,7 @@ source "vagrant" "vagrant-vmware" {
   ssh_timeout  = "20m"
 }
 
-source "vagrant" "vagrant-libvirt" {
+source "vagrant" "libvirt" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
@@ -77,9 +77,9 @@ source "vagrant" "vagrant-libvirt" {
 build {
   # List the 3 sources this build block controls
   sources = [
-    "source.vagrant.vagrant-vbox",
-    "source.vagrant.vagrant-vmware",
-    "source.vagrant.vagrant-libvirt"
+    "source.vagrant.virtualbox",
+    "source.vagrant.vmware",
+    "source.vagrant.libvirt"
   ]
 
   # --- This is where you do your customization ---
