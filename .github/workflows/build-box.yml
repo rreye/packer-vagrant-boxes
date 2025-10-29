@@ -38,15 +38,15 @@ jobs:
     name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ inputs.architecture }}])
 
     # GitHub runner
-    runs-on: ${{ inputs.architecture == 'arm64' ? 'macos-15' : 'ubuntu-24.04' }}
+    runs-on: "${{ inputs.architecture == 'arm64' ? 'macos-15' : 'ubuntu-24.04' }}"
 
     strategy:
       # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
       fail-fast: false
       # Create parallel jobs based on your 'provider' choice
       matrix:
-        provider: ${{ (inputs.provider == 'all' && fromJSON('["vagrant-vbox", "vagrant-vmware", "vagrant-libvirt"]')) || fromJSON(format('["{0}"]', inputs.provider)) }}
-        
+        provider: ${{ fromJSON(inputs.provider == 'all' && '["vagrant-vbox", "vagrant-vmware", "vagrant-libvirt"]' || format('["{0}"]', inputs.provider)) }}
+
     steps:
       - name: 1. Checkout code
         uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
           # Linux (amd64) requires hypervisor packages
           # macOS (arm64) use preinstalled QEMU 
           if [ "$RUNNER_OS" == "macOS" ]; then
-            echo "Installing QEMU packages on macOS...
+            echo "Installing QEMU packages on macOS..."
             brew install qemu
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
@@ -119,7 +119,7 @@ jobs:
             sudo "/Volumes/VMware Fusion/Install VMware Fusion.app/Contents/MacOS/applet" -silent -EULAS_AGREED=1
             hdiutil detach "/Volumes/VMware Fusion"
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            if [ -z "$VMWARE_URL_AMD" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
+            if [ -z "$VMWARE_URL_AMD" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
             curl -L -o vmware.bundle "$VMWARE_URL_AMD"
             chmod +x vmware.bundle
@@ -134,11 +134,11 @@ jobs:
         run: |
           echo "Changing to directory: ${{ inputs.box_name }}"
           cd ${{ inputs.box_name }}
-          
+
           echo "Validating Packer template..."
           # Packer IS pre-installed on the runner
           packer validate ../base.pkr.hcl
-          
+
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           packer build -var="build_arch=${{ inputs.architecture }}" -only="${{ matrix.provider }}.*" ../packer/base.pkr.hcl
 
