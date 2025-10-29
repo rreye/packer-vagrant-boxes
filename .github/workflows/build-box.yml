@@ -28,9 +28,9 @@ on:
         required: true
         type: choice
         options:
-          - vagrant-vbox
-          - vagrant-vmware
-          - vagrant-libvirt
+          - virtualbox
+          - vmware
+          - libvirt
           - all
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
       fail-fast: false
       # Create parallel jobs based on your 'provider' choice
       matrix:
-        provider: ${{ fromJSON(inputs.provider == 'all' && '["vagrant-vbox", "vagrant-vmware", "vagrant-libvirt"]' || format('["{0}"]', inputs.provider)) }}
+        provider: ${{ fromJSON(inputs.provider == 'all' && '["virtualbox", "vmware", "libvirt"]' || format('["{0}"]', inputs.provider)) }}
         architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
@@ -68,7 +68,7 @@ jobs:
           vagrant --version
 
       - name: 3. Install Dependencies (QEMU / Libvirt)
-        if: matrix.provider == 'vagrant-libvirt'
+        if: matrix.provider == 'libvirt'
         run: |
           echo "Installing vagrant-libvirt plugin..."
           vagrant plugin install vagrant-libvirt
@@ -86,7 +86,7 @@ jobs:
           echo "QEMU / Libvirt dependencies installed."
 
       - name: 3. Install Dependencies (VirtualBox)
-        if: matrix.provider == 'vagrant-vbox'
+        if: matrix.provider == 'virtualbox'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing VirtualBox on macOS (arm64)..."
@@ -105,7 +105,7 @@ jobs:
           vboxmanage --version
 
       - name: 3. Install Dependencies (VMware)
-        if: matrix.provider == 'vagrant-vmware'
+        if: matrix.provider == 'vmware'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
           VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
@@ -142,13 +142,13 @@ jobs:
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ../base.pkr.hcl
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="${{ matrix.provider }}.*" ../base.pkr.hcl
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" ../base.pkr.hcl
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: 5. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: box-${{ inputs.box_name }}-${{ matrix.provider }}-${{ inputs.architecture }}
-          path: ./${{ inputs.box_name }}/*.box
+          path: ./${{ inputs.box_name }}/package.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
