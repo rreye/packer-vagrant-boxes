@@ -1,4 +1,4 @@
-[![Build Vagrant Boxes](https://github.com/YOUR_USER/YOUR_REPO/actions/workflows/build-box.yml/badge.svg)](https://github.com/YOUR_USER/YOUR_REPO/actions/workflows/build-box.yml)
+[![Build Vagrant Boxes](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build-box.yml/badge.svg)](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build-box.yml)
 
 # Packer Vagrant Box Factory (ARM64 & AMD64)
 
