@@ -43,8 +43,9 @@ source "vagrant" "vagrant-vbox" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "virtualbox"
-  output       = "${var.box_name}-${var.build_arch}-${var.box_version}_virtualbox.box"
   template     = "./Vagrantfile.template"
+  skip_add     = true
+  communicator = "ssh"
   ssh_username = "vagrant"
   ssh_timeout  = "20m"
 }
@@ -53,8 +54,9 @@ source "vagrant" "vagrant-vmware" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
-  output       = "${var.box_name}-${var.build_arch}-${var.box_version}_vmware.box"
   template     = "./Vagrantfile.template"
+  skip_add     = true
+  communicator = "ssh"
   ssh_username = "vagrant"
   ssh_timeout  = "20m"
 }
@@ -63,8 +65,9 @@ source "vagrant" "vagrant-libvirt" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
-  output       = "${var.box_name}-${var.build_arch}-${var.box_version}_libvirt.box"
   template     = "./Vagrantfile.template"
+  skip_add     = true
+  communicator = "ssh"
   ssh_username = "vagrant"
   ssh_timeout  = "20m"
 }
