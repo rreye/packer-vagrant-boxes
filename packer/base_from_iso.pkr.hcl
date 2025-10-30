@@ -62,8 +62,6 @@ locals {
   iso_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   # Select VMware guest OS type based on build_arch
   guest_os_type_vmware = var.build_arch == "arm64" ? var.guest_os_type_vmware_arm64 : var.guest_os_type_vmware_amd64
-  # Construct the final box output filename
-  output_box_name = "${var.box_name}-${var.build_arch}-${var.box_version}_${lower(split(".", source.type)[0])}.box"
 }
 
 # --- 3. Builders (Sources) ---
@@ -220,8 +218,8 @@ build {
   # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {
     # Apply to all builds defined in this template
-    output            = local.output_box_name
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}_{{.Provider}}.box"
     compression_level = 9
-    keep_input_artifact = true # Delete the intermediate VM files
+    keep_input_artifact = false # Delete the intermediate VM files
   }
 }
