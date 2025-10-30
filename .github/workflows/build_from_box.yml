@@ -10,7 +10,6 @@ on:
         required: true
         type: choice
         options:
-          # --- ADD BOX DIRECTORIES HERE ---
           - ubuntu-24.04
       
       architecture:
@@ -133,17 +132,17 @@ jobs:
       - name: 4. Validate and Build with Packer
         run: |
           echo "Changing to directory: ${{ inputs.box_name }}"
-          cd ${{ inputs.box_name }}
+          cd box/${{ inputs.box_name }}
 
           echo "Initializing Packer plugins..."
-          packer init ../base.pkr.hcl
+          packer init ${{ github.workspace }}/packer/base_from_box.pkr.hcl
 
           echo "Validating Packer template..."
-          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ../base.pkr.hcl
+          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ${{ github.workspace }}/packer/base_from_box.pkr.hcl
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" ../base.pkr.hcl
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" ${{ github.workspace }}/packer/base_from_box.pkr.hcl
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: 5. Upload Artifact

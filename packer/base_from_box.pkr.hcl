@@ -1,3 +1,5 @@
+// File: packer/base_from_box.pkr.hcl
+// Master template for building Vagrant boxes from existing boxes.
 packer {
   required_plugins {
     virtualbox = {
@@ -7,45 +9,22 @@ packer {
   }
 }
 
-# --- 1. Variables ---
-variable "box_name" {
-  type    = string
-  description = "The name of the box"
-}
-
-variable "box_version" {
-  type    = string
-  description = "The version of the box"
-}
-
-variable "base_box" {
-  type    = string
-  description = "Base box on Vagrant Cloud"
-}
-
-variable "base_box_version" {
-  type    = string
-  default = "Base box version required, e.g. >= 4.3.0"
-}
-
-variable "provision_scripts" {
-  type    = list(string)
-  description = "List of provisioning scripts to be executed, related to the box directory"
-}
-
-variable "build_arch" {
-  type    = string
-  default = "amd64" # Default if not specified
-}
+# --- 1. Input Variables ---
+variable "box_name" { type = string }			# e.g., "ubuntu-24.04"
+variable "box_version" { type = string }        	# e.g., "1.0.0"
+variable "base_box" { type = string }        		# e.g., "bento/ubuntu-24.04"
+variable "base_box_version" { type = string }        	# e.g., ">= 4.3.0"
+variable "build_arch" { type = string }         	# Passed from workflow: "arm64" or "amd64"
+variable "provision_scripts" { type = list(string) }	# List of shell scripts to run
 
 # --- 2. Builder Definitions (Sources) ---
 source "vagrant" "virtualbox" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "virtualbox"
-  template     = "../Vagrantfile.template"
-  skip_add     = true
-  add_force    = false
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
@@ -56,9 +35,9 @@ source "vagrant" "vmware" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
-  template     = "../Vagrantfile.template"
-  skip_add     = true
-  add_force    = false
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
@@ -69,9 +48,9 @@ source "vagrant" "libvirt" {
   source_path  = var.base_box
   box_version  = var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
-  template     = "../Vagrantfile.template"
-  skip_add     = true
-  add_force    = false
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
@@ -90,9 +69,9 @@ build {
 
   # --- Customization ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E /bin/bash '{{.Path}}'"
     scripts = var.provision_scripts
     expect_disconnect = true
-    timeout         = "15m"
+    timeout         = "30m"
   }
 }

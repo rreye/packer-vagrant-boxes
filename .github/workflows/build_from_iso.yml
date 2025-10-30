@@ -1,0 +1,137 @@
+name: Build Vagrant Box (from ISO)
+
+on:
+  # Allows this workflow to be run manually from the "Actions" tab
+  workflow_dispatch:
+    inputs:
+      # A dropdown menu to select the box directory
+      box_name:
+        description: 'Which box to build?'
+        required: true
+        type: choice
+        options:
+          - ubuntu-24.04
+          - alpine-3.20
+          - rocky-9
+      
+      architecture:
+        description: 'Which architecture?'
+        required: true
+        type: choice
+        options:
+          - arm64
+          - amd64
+
+      # A menu to select the provider. These names MUST match
+      # the start of the 'name' of your 'source' blocks in Packer.
+      provider:
+        description: 'Which provider?'
+        required: true
+        type: choice
+        options:
+          - virtualbox-iso
+          - vmware-iso
+          - qemu
+          - all
+
+jobs:
+  build:
+    name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ matrix.architecture }}])
+    # GitHub runner
+    runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
+
+    strategy:
+      # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
+      fail-fast: false
+      # Create parallel jobs based on your 'provider' choice
+      matrix:
+        provider: ${{ fromJSON(inputs.provider == 'all' && '["virtualbox-iso", "vmware-iso", "qemu"]' || format('["{0}"]', inputs.provider)) }}
+        architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
+
+    steps:
+      - name: 1. Checkout code
+        uses: actions/checkout@v4
+
+      - name: 2. Install Dependencies (QEMU)
+        if: matrix.provider == 'qemu'
+        run: |
+          # Linux (amd64) requires hypervisor packages
+          # macOS (arm64) use preinstalled QEMU 
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "Installing QEMU packages on macOS..."
+            brew install qemu
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            echo "Installing QEMU/Libvirt packages on Linux..."
+            sudo apt-get update
+            sudo apt-get install -y qemu-system libvirt-daemon-system libvirt-clients ebtables dnsmasq-base
+          fi
+          echo "QEMU dependencies installed."
+
+      - name: 2. Install Dependencies (VirtualBox)
+        if: matrix.provider == 'virtualbox'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "Installing VirtualBox on macOS (arm64)..."
+            curl -L -o virtualbox.dmg "https://download.virtualbox.org/virtualbox/7.2.4/VirtualBox-7.2.4-170995-macOSArm64.dmg"
+            hdiutil attach virtualbox.dmg
+            sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg -target /
+            hdiutil detach /Volumes/VirtualBox
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            echo "Installing VirtualBox on Linux (amd64)..."
+            curl -fsSL https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmor -o /usr/share/keyrings/oracle-virtualbox-2016.gpg
+            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
+            sudo apt-get update
+            sudo apt-get install -y virtualbox-7.2
+          fi
+          echo "VirtualBox installed."
+          vboxmanage --version
+
+      - name: 2. Install Dependencies (VMware)
+        if: matrix.provider == 'vmware'
+        env:
+          VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
+          VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            if [ -z "$VMWARE_URL_ARM" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
+            echo "Downloading VMware Fusion (arm64)..."
+            curl -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM"
+            echo "Installing VMware..."
+            hdiutil attach VMware-Fusion.dmg
+            sudo "/Volumes/VMware Fusion/Install VMware Fusion.app/Contents/MacOS/applet" -silent -EULAS_AGREED=1
+            hdiutil detach "/Volumes/VMware Fusion"
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            if [ -z "$VMWARE_URL_AMD" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
+            echo "Downloading VMware Workstation (amd64)..."
+            curl -L -o vmware.bundle "$VMWARE_URL_AMD"
+            chmod +x vmware.bundle
+            echo "Installing VMware..."
+            sudo ./vmware.bundle --console --required --eulas-agreed
+          fi
+          echo "VMware installed."
+          vmware --version
+
+      # --- BUILD STEP ---
+      - name: 3. Validate and Build with Packer
+        run: |
+          echo "Changing to directory: ${{ inputs.box_name }}"
+          cd iso/${{ inputs.box_name }}
+
+          echo "Initializing Packer plugins..."
+          packer init ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+
+          echo "Validating Packer template..."
+          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+
+          echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
+          export PACKER_LOG=1
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="${{ matrix.provider }}.${{ inputs.architecture }}" ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+
+      # --- ARTIFACT UPLOAD STEP ---
+      - name: 4. Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: box-${{ inputs.box_name }}-${{ matrix.provider }}-${{ inputs.architecture }}
+          path: ./${{ inputs.box_name }}/package.box
+          if-no-files-found: error
+          retention-days: 14 # Keep artifact for 14 days (default is 90)
