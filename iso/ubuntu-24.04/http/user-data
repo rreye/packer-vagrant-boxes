@@ -47,6 +47,7 @@ autoinstall:
     - sed -i 's/^.*PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
     - sed -i 's/^.*PubkeyAuthentication.*/PubkeyAuthentication yes/g' /target/etc/ssh/sshd_config
     - echo "root:vagrant" | chroot /target chpasswd
+    - echo "vagrant:vagrant" | chroot /target chpasswd
     - echo "vagrant ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/vagrant
     - chmod 0440 /target/etc/sudoers.d/vagrant
     - echo "Installation complete."
