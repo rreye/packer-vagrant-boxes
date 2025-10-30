@@ -6,7 +6,7 @@ echo "==> Running provision script (Rocky)..."
 dnf update -y
 
 # Install common tools (some might be installed by Kickstart already)
-dnf install -y vim nano git curl wget tree net-tools openssh-server rynsc unzip sudo gnupg
+dnf install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg
 
 # Optional: Enable EPEL repository for more packages
 dnf install -y epel-release
