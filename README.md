@@ -5,26 +5,41 @@
 
 This repository contains Packer templates to build Vagrant boxes for both **`arm64` (aarch64 / Apple Silicon)** and **`amd64` (x86_64)** architectures.
 
-It supports two distinct build pipelines:
-1.  **Customize from Base Box:** (Fast) Takes an existing box from Vagrant Cloud (e.g., `generic/ubuntu2404`) and provisions it.
-2.  **Build from ISO:** (Slow) Builds a box from scratch using an OS installer ISO and an unattended installation (e.g., Ubuntu Autoinstall, Rocky Kickstart).
+It provides two distinct build pipelines, organized by build type:
+1.  **`/box` (Customize from Base Box):** (Fast) Takes an existing box from Vagrant Cloud (e.g., `generic/ubuntu2404`) and provisions it.
+2.  **`/iso` (Build from ISO):** (Slow) Builds a box from scratch using an OS installer ISO and an unattended installation.
 
 All builds are automated using GitHub Actions and refactored to use generic base Packer templates.
 
 ## 🏗️ Repository Structure
 
-This repository uses a refactored structure to avoid code duplication.
+This repository uses a refactored structure to separate build types and keep templates DRY (Don't Repeat Yourself).
 
-* `packer/base_from_box.pkr.hcl`: The master Packer template for customizing existing Vagrant boxes.
-* `packer/base_from_iso.pkr.hcl`: The master Packer template for building new boxes from an ISO.
-* `packer/vagrantfile.template`: A `Vagrantfile` template used by the `base_from_box` builder.
-* `ubuntu-24.04/` (etc.): Directories for boxes built **from a base box**.
-    * `box.auto.pkrvars.hcl`: Defines *which* base box to use and *which* scripts to run.
-    * `scripts/`: Provisioning scripts.
-* `ubuntu-24.04-iso/` (etc.): Directories for boxes built **from an ISO**.
-    * `box.auto.pkrvars.hcl`: Defines *which* ISO to use, `boot_command`s, `ssh_username`, etc.
-    * `http/`: Unattended installation files (e.g., `user-data`, `ks.cfg`).
-    * `scripts/`: Provisioning scripts.
+*	`.github/`
+	*	`workflows/`
+		*	`build_from_box.yml`: Workflow for boxes in `/box`
+		*	`build_from_iso.yml`: Workflow for boxes in `/iso`
+*	`box/`: Build from existing boxes
+	*	`ubuntu-24.04/`
+		*	`box.auto.pkrvars.hcl`: Defines base box and scripts
+		*	`scripts/`: Provisioning scripts
+*	`iso/`: Build from scratch (ISO)
+	*	`alpine-3.20/`
+		*	`box.auto.pkrvars.hcl`: Defines ISO, boot commands, etc.
+		*	`http/`: Unattended install files (e.g., `answerfile`)
+		*	`scripts/`: Provisioning scripts
+	*	`rocky-9/`
+		*	`box.auto.pkrvars.hcl`
+		*	`http/`: (e.g., `ks.cfg`)
+		*	`scripts/`
+	*	`ubuntu-24.04/`
+		*	`box.auto.pkrvars.hcl`
+		*	`http/`: (e.g., `user-data`)
+		*	`scripts/`
+*	`packer/`
+	*	`base_from_box.pkr.hcl`: Master template for `/box`
+	*	`base_from_iso.pkr.hcl`: Master template for `/iso`
+	*	`vagrantfile.template`: Used by `base_from_box`
 
 ---
 
@@ -34,12 +49,12 @@ There are two separate workflows. Choose the one that matches your goal.
 
 ### Method 1: Build from an existing Box (Fast)
 
-Use this to apply custom provisioning to an existing Vagrant Cloud box (like `generic/ubuntu2404`).
+Use this to apply custom provisioning to an existing Vagrant Cloud box.
 
 1.  Go to the **"Actions"** tab.
 2.  In the left sidebar, click on the **"🚧 Build Vagrant Box (from Box)"** workflow.
 3.  Click the **"Run workflow"** dropdown button.
-4.  Select the **`box_name`** (e.g., `ubuntu-24.04`).
+4.  Select the **`box_name`** (e.g., `ubuntu-24.04`). This must match a directory inside the `/box` folder.
 5.  Select the **`architecture`** (e.g., `arm64` or `amd64`).
 6.  Select the **`provider`** (e.g., `vagrant-vbox` or `all`).
 7.  Click the green **"Run workflow"** button.
@@ -51,7 +66,7 @@ Use this to create a new box from an OS installer ISO.
 1.  Go to the **"Actions"** tab.
 2.  In the left sidebar, click on the **"🚧 Build Vagrant Box (from ISO)"** workflow.
 3.  Click the **"Run workflow"** dropdown button.
-4.  Select the **`box_name`** (e.g., `ubuntu-24.04-iso`).
+4.  Select the **`box_name`** (e.g., `ubuntu-24.04`, `rocky-9`). This must match a directory inside the `/iso` folder.
 5.  Select the **`architecture`** (e.g., `arm64` or `amd64`).
 6.  Select the **`provider`** (e.g., `virtualbox-iso` or `all`).
 7.  Click the green **"Run workflow"** button.
@@ -66,11 +81,11 @@ After a workflow is complete, you can download your `.box` file from the **"Arti
 
 ### Adding a new "Build from Box" (e.g., Debian 12)
 
-1.  Create a new folder: `debian-12/`
-2.  Create `debian-12/scripts/` and add your provisioning scripts (e.g., `provision.sh`).
-3.  Create `debian-12/box.auto.pkrvars.hcl` with its variables:
+1.  Create a new folder: `box/debian-12/`
+2.  Create `box/debian-12/scripts/` and add your provisioning scripts (e.g., `provision.sh`).
+3.  Create `box/debian-12/box.auto.pkrvars.hcl` with its variables (this points to `packer/base_from_box.pkr.hcl`):
     ```hcl
-    // File: debian-12/box.auto.pkrvars.hcl
+    // File: box/debian-12/box.auto.pkrvars.hcl
     box_name         = "debian-12"
     box_version      = "1.0.0"
     base_box         = "generic/debian12"
@@ -84,23 +99,21 @@ After a workflow is complete, you can download your `.box` file from the **"Arti
 
 ### Adding a new "Build from ISO" (e.g., Fedora 40)
 
-1.  Create a new folder: `fedora-40-iso/`
-2.  Create `fedora-40-iso/http/` and add your unattended install files (e.g., `ks.cfg`).
-3.  Create `fedora-40-iso/scripts/` and add your provisioning scripts (e.g., `provision.sh`).
-4.  Create `fedora-40-iso/box.auto.pkrvars.hcl` with all ISO-specific variables:
+1.  Create a new folder: `iso/fedora-40/`
+2.  Create `iso/fedora-40/http/` and add your unattended install files (e.g., `ks.cfg`).
+3.  Create `iso/fedora-40/scripts/` and add your provisioning scripts (e.g., `provision.sh`).
+4.  Create `iso/fedora-40/box.auto.pkrvars.hcl` with all ISO-specific variables (this points to `packer/base_from_iso.pkr.hcl`):
     ```hcl
-    // File: fedora-40-iso/box.auto.pkrvars.hcl
+    // File: iso/fedora-40/box.auto.pkrvars.hcl
     box_name    = "fedora-40"
     box_version = "1.0.0"
 
     guest_os_type_vbox   = "Fedora_64"
-    guest_os_type_vmware_amd64 = "fedora-64"
     # ... etc ...
 
     iso_url_amd64      = "https://.../Fedora-Server-40-x86_64.iso"
     iso_checksum_amd64 = "sha256:..."
-    iso_url_arm64      = "https://.../Fedora-Server-40-aarch64.iso"
-    iso_checksum_arm64 = "sha256:..."
+    # ... etc ...
 
     http_directory = "http"
     boot_command   = [
@@ -109,15 +122,9 @@ After a workflow is complete, you can download your `.box` file from the **"Arti
       "<enter>"
     ]
     
-    ssh_username = "vagrant"
-    ssh_password = "vagrant"
-    shutdown_command = "echo 'vagrant' | sudo -S /sbin/halt -h -p"
-
-    provision_scripts = [
-      "scripts/provision.sh"
-    ]
+    # ... etc ...
     ```
-5.  Edit `.github/workflows/build_from_iso.yml` and add `fedora-40-iso` to the `options` list for the `box_name` input.
+5.  Edit `.github/workflows/build_from_iso.yml` and add `fedora-40` to the `options` list for the `box_name` input.
 
 ## 📜 License
 
