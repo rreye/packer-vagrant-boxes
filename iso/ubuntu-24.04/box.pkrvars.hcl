@@ -35,5 +35,6 @@ shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 provision_scripts = [
   "scripts/provision-ubuntu.sh",
   "scripts/vagrant.sh",
+  "scripts/vbguest-ubuntu.sh",
   "scripts/cleanup-ubuntu.sh"
 ]

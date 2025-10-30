@@ -11,7 +11,7 @@ apt-get update
 apt-get upgrade -y
 
 # Install common tools
-apt-get install -y vim nano git curl wget tree net-tools openssh-server rynsc unzip sudo gnupg
+apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg
 
 # SSH config
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config

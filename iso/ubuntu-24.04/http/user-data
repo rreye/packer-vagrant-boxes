@@ -27,7 +27,7 @@ autoinstall:
   identity:
     hostname: ubuntu
     username: vagrant
-    password: "$6$lkmFH8Iy3/2cKmS/$jaZRR01TqhRCZ6p05U99ZY5LZbb88qROb1PML4fvNuxwXRvkssJ8uyGysG8n8MSAZZ1LjIYw8E3TTI8i2vlsW0"
+    password: '$6$lkmFH8Iy3/2cKmS/$jaZRR01TqhRCZ6p05U99ZY5LZbb88qROb1PML4fvNuxwXRvkssJ8uyGysG8n8MSAZZ1LjIYw8E3TTI8i2vlsW0'
 
   ssh:
     install-server: true
@@ -47,7 +47,6 @@ autoinstall:
     - sed -i 's/^.*PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
     - sed -i 's/^.*PubkeyAuthentication.*/PubkeyAuthentication yes/g' /target/etc/ssh/sshd_config
     - echo "root:vagrant" | chroot /target chpasswd
-    - echo "vagrant:vagrant" | chroot /target chpasswd
     - echo "vagrant ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/vagrant
     - chmod 0440 /target/etc/sudoers.d/vagrant
     - echo "Installation complete."

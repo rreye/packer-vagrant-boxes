@@ -6,6 +6,9 @@ echo "==> Running cleanup script (Ubuntu)..."
 export DEBIAN_FRONTEND=noninteractive
 export DEBCONF_NONINTERACTIVE_SEEN=true
 
+# Remove cloud-init
+apt-get remove cloud-init -y
+
 # Clean apt cache
 apt-get autoremove -y
 apt-get clean -y

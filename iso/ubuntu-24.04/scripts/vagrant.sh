@@ -16,7 +16,9 @@ passwd -d root
 echo 'root:vagrant' | chpasswd -m
 
 # Install Vagrant SSH key
+mkdir -p /home/vagrant/.ssh
 chmod 0700 /home/vagrant/.ssh
+curl -fsSL 'https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub' -o /home/vagrant/.ssh/authorized_keys
 chmod 0600 /home/vagrant/.ssh/authorized_keys
 chown -R vagrant:vagrant /home/vagrant/.ssh
 
