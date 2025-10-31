@@ -221,7 +221,15 @@ build {
     expect_disconnect = true
     timeout         = "30m"
   }
-  
+
+  # --- SSHD ---
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/sshd.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
   # --- OS customization ---
   provisioner "shell" {
     execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
