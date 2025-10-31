@@ -20,7 +20,7 @@ boot_command = [
     # Boot sequence for Alpine setup with answerfile via HTTP
     "root<enter><wait>",                # Login as root (no password initially)
     "setup-interfaces -a<enter><wait>", # Configure network via DHCP
-    "sleep 5<enter><wait>",             # Wait for network
+    "sleep 5<enter><wait10s>",             # Wait for network
     "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answerfile<enter><wait>", # Download answerfile
     "setup-alpine -f answerfile<enter><wait10>", # Run setup with answerfile
     "<wait10m>"                         # Wait long for install
