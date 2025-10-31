@@ -86,6 +86,7 @@ source "virtualbox-iso" "amd64" {
   disk_size          = var.disk_size
   format             = "ova" # Required for vagrant post-processor
   headless           = false
+  guest_additions_mode = "disable"
 }
 
 source "virtualbox-iso" "arm64" {
@@ -102,6 +103,7 @@ source "virtualbox-iso" "arm64" {
   shutdown_command   = var.shutdown_command
   format             = "ova"
   headless           = true
+  guest_additions_mode = "disable"
   vboxmanage         = [ # ARM specific settings
     ["modifyvm", "{{.Name}}", "--firmware", "efi"],
     ["modifyvm", "{{.Name}}", "--cpu-profile", "host"],
