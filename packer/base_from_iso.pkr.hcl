@@ -128,7 +128,6 @@ source "vmware-iso" "amd64" {
   disk_size          = var.disk_size
   format             = "vmx" # Required for vagrant post-processor
   headless           = false
-  tools_upload_flavor = "linux"
 }
 
 source "vmware-iso" "arm64" {
@@ -149,7 +148,6 @@ source "vmware-iso" "arm64" {
   format             = "vmx"
   firmware           = "efi" # Required for arm64
   headless           = true
-  tools_upload_flavor = "linux"
 }
 
 # --- QEMU ---
@@ -169,6 +167,7 @@ source "qemu" "amd64" {
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
   headless           = false
+  display            = "none"
 }
 
 source "qemu" "arm64" {
