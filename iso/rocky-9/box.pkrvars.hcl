@@ -16,11 +16,11 @@ iso_checksum_arm64 = "sha256:4dbba6104aa1025fae5a540785e905fab7864dad118168e8220
 # Kickstart configuration
 http_directory = "http" # Contains ks.cfg
 boot_command = [
-    "<tab>", # Interrupt bootloader
-    " linux inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
+    "<tab><wait>", # Interrupt bootloader
+    "linux inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
     " console=tty0 console=ttyS0,115200n8", # Console output
-    "<enter>" # Start boot
+    "<enter><wait>" # Start boot
 ]
 
 # User/password for initial SSH (defined in ks.cfg)
