@@ -36,7 +36,7 @@ variable "memory" {
 }
 variable "disk_size" {
   type = number
-  default = 40960	# Disk size in MB (40GB default)
+  default = 32768	# Disk size in MB (32GB default)
 }
 
 # Guest OS type variables (provider specific)
@@ -77,13 +77,15 @@ source "virtualbox-iso" "amd64" {
   boot_command       = var.boot_command
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m" # Increase timeout for ISO install
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
   output_directory   = "output-vbox-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "ova" # Required for vagrant post-processor
+  headless           = false
 }
 
 source "virtualbox-iso" "arm64" {
@@ -94,7 +96,8 @@ source "virtualbox-iso" "arm64" {
   boot_command       = var.boot_command
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
   output_directory   = "output-vbox-arm64"
   shutdown_command   = var.shutdown_command
   format             = "ova"
@@ -116,14 +119,16 @@ source "vmware-iso" "amd64" {
   boot_command       = var.boot_command
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
   output_directory   = "output-vmware-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "vmx" # Required for vagrant post-processor
-  headless           = true
+  headless           = false
+  tools_upload_flavor = "linux"
 }
 
 source "vmware-iso" "arm64" {
@@ -134,7 +139,8 @@ source "vmware-iso" "arm64" {
   boot_command       = var.boot_command
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
   output_directory   = "output-vmware-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -143,6 +149,7 @@ source "vmware-iso" "arm64" {
   format             = "vmx"
   firmware           = "efi" # Required for arm64
   headless           = true
+  tools_upload_flavor = "linux"
 }
 
 # --- QEMU ---
@@ -161,7 +168,7 @@ source "qemu" "amd64" {
   disk_size          = "${var.disk_size}M" # Qemu needs unit
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
-  headless           = true
+  headless           = false
 }
 
 source "qemu" "arm64" {
@@ -171,7 +178,8 @@ source "qemu" "arm64" {
   boot_command       = var.boot_command
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
   output_directory   = "output-qemu-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -200,20 +208,81 @@ build {
   # Provisioning steps (common logic)
   provisioner "shell" {
     # Wait for SSH to be ready after OS install
-    pause_before = "10s" 
+    pause_before = "10s"
     inline = [
         "echo 'SSH is up. Starting provisioning...'"
     ]
   }
 
-  # --- Customization ---
+  # --- Vagrant user config ---
   provisioner "shell" {
-    execute_command = "{{ .Vars }} sudo -E /bin/bash '{{ .Path }}'"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/vagrant.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  # --- OS customization ---
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
     scripts = var.provision_scripts
     expect_disconnect = true
     timeout         = "30m"
   }
 
+  # --- Force reboot ---
+  provisioner "shell" {
+    pause_after = "1m"
+    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  # --- Provider specific ---
+  provisioner "shell" {
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  provisioner "shell" {
+    only = ["vmware-iso.amd64", "source.vmware-iso.arm64"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  provisioner "shell" {
+    only = ["qemu.amd64", "qemu.arm64"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- Force reboot ---
+  provisioner "shell" {
+    pause_after = "1m"
+    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- Cleanup ---
+  provisioner "shell" {
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/cleanup.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   # --- 5. Post-Processing ---
   # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {

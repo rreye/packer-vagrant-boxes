@@ -28,7 +28,8 @@ source "vagrant" "virtualbox" {
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
-  ssh_timeout  = "20m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
 }
 
 source "vagrant" "vmware" {
@@ -41,7 +42,8 @@ source "vagrant" "vmware" {
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
-  ssh_timeout  = "20m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
 }
 
 source "vagrant" "libvirt" {
@@ -54,7 +56,8 @@ source "vagrant" "libvirt" {
   communicator = "ssh"
   ssh_username = "vagrant"
   ssh_password = "vagrant"
-  ssh_timeout  = "20m"
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
 }
 
 # --- 3. Build Block (Provisioning) ---
@@ -66,11 +69,80 @@ build {
     "source.vagrant.vmware",
     "source.vagrant.libvirt"
   ]
-
-  # --- Customization ---
+  # Provisioning steps (common logic)
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E /bin/bash '{{.Path}}'"
+    # Wait for SSH to be ready after OS install
+    pause_before = "10s"
+    inline = [
+        "echo 'SSH is up. Starting provisioning...'"
+    ]
+  }
+
+  # --- Vagrant user config ---
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/vagrant.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  # --- OS customization ---
+  provisioner "shell" {
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
     scripts = var.provision_scripts
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- Force reboot ---
+  provisioner "shell" {
+    pause_after = "1m"
+    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  # --- Provider specific ---
+  provisioner "shell" {
+    only = ["vagrant.virtualbox"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  provisioner "shell" {
+    only = ["vagrant.vmware"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  provisioner "shell" {
+    only = ["vagrant.libvirt"]
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- Force reboot ---
+  provisioner "shell" {
+    pause_after = "1m"
+    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- Cleanup ---
+  provisioner "shell" {
+    pause_before = "10s"
+    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    scripts = ["${path.root}/scripts/cleanup.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
