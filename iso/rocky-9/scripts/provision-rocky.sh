@@ -11,6 +11,5 @@ dnf install -y vim nano git curl wget tree net-tools openssh-server rsync unzip 
 
 # Optional: Enable EPEL repository for more packages
 dnf install -y epel-release
-dnf update -y
 
 echo "==> Provisioning complete."
