@@ -20,7 +20,7 @@ else
 	echo -e "Installing VBoxGuestAdditions_$VERSION for architecture $ARCHITECTURE"
 fi
 
-if [ -f "/bin/dnf" ]; then
+if [ -f "/usr/bin/dnf" ]; then
 	dnf update
 	dnf install -y --skip-broken cpp gcc make bzip2 tar kernel-headers kernel-devel kernel-uek-devel || true # not all these packages are on every system
 elif [ -f "/usr/bin/apt-get" ]; then
@@ -29,6 +29,9 @@ elif [ -f "/usr/bin/apt-get" ]; then
 elif [ -f "/usr/bin/zypper" ]; then
 	zypper refresh
 	zypper install -y perl cpp gcc make bzip2 tar kernel-default-devel
+elif [ -f "/sbin/apk" ]; then
+	apk update
+	apk add --no-cache make gcc perl linux-headers
 fi
 
 if [ ! -f /tmp/VBoxGuestAdditions_$VERSION.iso ]; then

@@ -2,7 +2,7 @@
 
 echo "==> Running cleanup script..."
 
-if [ -f "/bin/dnf" ]; then
+if [ -f "/usr/bin/dnf" ]; then
 	dnf autoremove -y
 	dnf clean all
 elif [ -f "/usr/bin/apt-get" ]; then
@@ -11,7 +11,7 @@ elif [ -f "/usr/bin/apt-get" ]; then
 elif [ -f "/usr/bin/zypper" ]; then
 	zypper remove-orphans
 	zypper clean --all
-elif [ -f "/usr/bin/apk" ]; then
+elif [ -f "/sbin/apk" ]; then
 	apk cache clean
 	rm -rf /var/cache/apk/*
 fi
