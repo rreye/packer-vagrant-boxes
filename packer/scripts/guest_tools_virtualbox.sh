@@ -24,10 +24,12 @@ if [ -f "/usr/bin/dnf" ]; then
 	dnf update
 	dnf install -y --skip-broken cpp gcc make bzip2 tar kernel-headers kernel-devel kernel-uek-devel || true # not all these packages are on every system
 elif [ -f "/usr/bin/apt-get" ]; then
-	apt-get update
+	export DEBIAN_FRONTEND=noninteractive
+	export DEBCONF_NONINTERACTIVE_SEEN=true
+	apt-get update -y
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$(uname -r)"
 elif [ -f "/usr/bin/zypper" ]; then
-	zypper refresh
+	zypper refresh -y
 	zypper install -y perl cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
 	apk update
