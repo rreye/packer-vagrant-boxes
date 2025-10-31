@@ -85,7 +85,7 @@ source "virtualbox-iso" "amd64" {
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "ova" # Required for vagrant post-processor
-  headless           = false
+  headless           = true
   guest_additions_mode = "disable"
 }
 
@@ -168,8 +168,11 @@ source "qemu" "amd64" {
   disk_size          = "${var.disk_size}M" # Qemu needs unit
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
-  headless           = false
-  display            = "none"
+  headless           = true
+  use_default_display = true
+  # AMD64 specific settings
+  machine_type       = "q35"
+  cpu_model          = "host"
 }
 
 source "qemu" "arm64" {
@@ -189,6 +192,7 @@ source "qemu" "arm64" {
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
   headless           = true
+  use_default_display = true
   # ARM specific settings
   machine_type       = "virt"
   cpu_model          = "cortex-a76"
