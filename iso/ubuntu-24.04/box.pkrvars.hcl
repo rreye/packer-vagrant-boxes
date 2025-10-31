@@ -19,7 +19,7 @@ boot_command = [
   "<wait5s>",
   "c<wait>",     # Select boot command prompt
   "linux /casper/vmlinuz ip=dhcp autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ net.ifnames=0<enter><wait>",
-  "<wait5s>",
+  "<wait2s>",
   "initrd /casper/initrd<enter><wait>",
   "boot<enter><wait>"
 ]
@@ -32,9 +32,4 @@ ssh_password = "vagrant"
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
 # Scripts to run after OS install
-provision_scripts = [
-  "scripts/provision-ubuntu.sh",
-  "scripts/vagrant.sh",
-  "scripts/vbguest-ubuntu.sh",
-  "scripts/cleanup-ubuntu.sh"
-]
+provision_scripts = ["scripts/provision-ubuntu.sh"]

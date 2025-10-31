@@ -31,8 +31,4 @@ ssh_password = "vagrant"
 shutdown_command = "echo 'vagrant' | sudo -S /sbin/halt -h -p"
 
 # Scripts
-provision_scripts = [
-  "scripts/provision-rocky.sh",
-  "scripts/vagrant.sh",
-  "scripts/cleanup-rocky.sh"
-]
+provision_scripts = ["scripts/provision-rocky.sh"]

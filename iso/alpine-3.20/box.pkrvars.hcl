@@ -34,8 +34,4 @@ ssh_password = "vagrant"
 shutdown_command = "echo 'vagrant' | sudo -S poweroff"
 
 # Scripts
-provision_scripts = [
-  "scripts/provision-alpine.sh",
-  "scripts/vagrant.sh",
-  "scripts/cleanup-alpine.sh"
-]
+provision_scripts = ["scripts/provision-alpine.sh"]
