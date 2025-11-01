@@ -15,7 +15,7 @@ sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' $SSHD_CONFIG
 sed -i 's/#PasswordAuthentication/PasswordAuthentication/' $SSHD_CONFIG
 sed -i 's/KbdInteractiveAuthentication no/KbdInteractiveAuthentication yes/' $SSHD_CONFIG
 sed -i 's/#KbdInteractiveAuthentication/KbdInteractiveAuthentication/' $SSHD_CONFIG
-sed -i 's/UseDNS no/UseDNS yes/' $SSHD_CONFIG
+sed -i 's/UseDNS yes/UseDNS no/' $SSHD_CONFIG
 sed -i 's/#UseDNS/UseDNS/' $SSHD_CONFIG
 
 systemctl restart ssh
