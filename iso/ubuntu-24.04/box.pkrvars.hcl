@@ -24,6 +24,9 @@ boot_command = [
   "boot<enter><wait>"
 ]
 
+# Execute command
+execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+
 # User/password for initial SSH
 ssh_username = "vagrant"
 ssh_password = "vagrant"

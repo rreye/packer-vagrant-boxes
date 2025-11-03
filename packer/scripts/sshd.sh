@@ -11,13 +11,15 @@ else
   exit 1
 fi
 
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' $SSHD_CONFIG
-sed -i 's/#PasswordAuthentication/PasswordAuthentication/' $SSHD_CONFIG
-sed -i 's/KbdInteractiveAuthentication no/KbdInteractiveAuthentication yes/' $SSHD_CONFIG
-sed -i 's/#KbdInteractiveAuthentication/KbdInteractiveAuthentication/' $SSHD_CONFIG
-sed -i 's/UseDNS no/UseDNS yes/' $SSHD_CONFIG
-sed -i 's/#UseDNS/UseDNS/' $SSHD_CONFIG
+echo "PermitRootLogin yes" > $SSHD_CONFIG
+echo "PasswordAuthentication yes" >> $SSHD_CONFIG
+echo "KbdInteractiveAuthentication yes" >> $SSHD_CONFIG
+echo "UseDNS no" >> $SSHD_CONFIG
 
-systemctl restart ssh
+if [ -f /etc/alpine-release ]; then
+  rc-service sshd restart
+else
+  systemctl restart sshd
+fi
 
 echo "==> SSHD configuration complete."

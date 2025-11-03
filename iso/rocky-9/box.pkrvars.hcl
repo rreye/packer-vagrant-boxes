@@ -23,6 +23,9 @@ boot_command = [
     "<enter><wait>" # Start boot
 ]
 
+# Execute command
+execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+
 # User/password for initial SSH (defined in ks.cfg)
 ssh_username = "vagrant"
 ssh_password = "vagrant"
