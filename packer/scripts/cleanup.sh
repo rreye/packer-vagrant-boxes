@@ -32,8 +32,8 @@ find /var/log -type f -delete
 truncate -s 0 /etc/machine-id
 if [ -f "/var/lib/dbus/machine-id" ]; then
 	rm /var/lib/dbus/machine-id
+	ln -s /etc/machine-id /var/lib/dbus/machine-id
 fi
-ln -s /etc/machine-id /var/lib/dbus/machine-id
 
 # Force a new random seed to be generated"
 if [ -f "/var/lib/systemd/random-seed" ]; then
