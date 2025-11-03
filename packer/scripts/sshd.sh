@@ -14,6 +14,7 @@ fi
 echo "PermitRootLogin yes" > $SSHD_CONFIG
 echo "PasswordAuthentication yes" >> $SSHD_CONFIG
 echo "KbdInteractiveAuthentication yes" >> $SSHD_CONFIG
+echo "GSSAPIAuthentication no" >> $SSHD_CONFIG
 echo "UseDNS no" >> $SSHD_CONFIG
 
 if [ -f /etc/alpine-release ]; then
