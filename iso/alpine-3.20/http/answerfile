@@ -5,10 +5,15 @@
 KEYMAPOPTS="es es"
 
 # Hostname
-HOSTNAMEOPTS="alpine"
+HOSTNAMEOPTS=alpine
 
-# Network interface (use eth0, typically the first one)
-INTERFACESOPTS="auto eth0"
+# Network interface
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+"
 
 # DNS
 DNSOPTS=""
@@ -17,33 +22,21 @@ DNSOPTS=""
 TIMEZONEOPTS="UTC"
 
 # Proxy
-PROXYOPTS="none"
+PROXYOPTS=none
 
 # Alpine Mirror (auto-detect)
-APKREPOSOPTS="-c"
+APKREPOSOPTS="-1 -c"
 
 # SSH Server (OpenSSH)
-SSHDOPTS="openssh"
+SSHDOPTS=openssh
 
 # NTP Client (chrony)
-NTPOPTS="chrony"
+NTPOPTS=chrony
 
 # Disk setup (use sda/vda, wipe it, use for sys)
 # Adjust disk name if needed (e.g., vda for virtio)
-DISKOPTS="-m sys /dev/sda"
+DISKOPTS="-m sys /dev/vda"
 
 # Setup user
-USEROPTS="-a -g wheel,users vagrant"
+USEROPTS="-a -u vagrant"
 USERSSHKEY="https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub"
-
-# Root password (set to something, will be disabled)
-ROOTPWOPTS="-c ."
-
-# Run setup scripts (optional, can do in provisioner)
-SETUP_SCRIPTS=""
-
-# Erase disk confirmation
-ERASEOPTS="-y"
-
-# Reboot after install
-REBOOT="reboot"

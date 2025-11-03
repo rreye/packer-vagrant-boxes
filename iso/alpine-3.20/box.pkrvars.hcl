@@ -18,20 +18,29 @@ iso_checksum_arm64 = "sha256:3ac4cc127127592b454b7c804cb88a9155462f63197c4333976
 http_directory = "http" # Contains answerfile
 boot_command = [
     # Boot sequence for Alpine setup with answerfile via HTTP
-    "root<enter><wait>",                # Login as root (no password initially)
-    "setup-interfaces -a<enter><wait>", # Configure network via DHCP
-    "sleep 5<enter><wait10s>",             # Wait for network
+    "root<enter>",                # Login as root (no password initially)
+    "ifconfig eth0 up<enter><wait>",
+    "udhcpc -i eth0<enter><wait2s>",	# Configure network via DHCP
     "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answerfile<enter><wait>", # Download answerfile
-    "setup-alpine -f answerfile<enter><wait10>", # Run setup with answerfile
-    "<wait10m>"                         # Wait long for install
+    "echo \"root:vagrant\" | chpasswd -m<enter><wait>",
+    "mkdir -p /etc/ssh/sshd_config.d<enter>",
+    "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
+    "yes | setup-alpine -e -f answerfile<enter><wait20s>", 	# Run setup with answerfile
+    "reboot<enter>"
 ]
 
 # User/password for initial SSH (setup in answerfile)
-ssh_username = "vagrant"
+ssh_username = "root"
 ssh_password = "vagrant"
 
+# Execute command
+execute_command = "{{.Vars}} sh -eux '{{.Path}}'"
+
+# Reboot command
+reboot_command = "reboot"
+
 # Shutdown command
-shutdown_command = "echo 'vagrant' | sudo -S poweroff"
+shutdown_command = "poweroff"
 
 # Scripts
 provision_scripts = ["scripts/provision-alpine.sh"]
