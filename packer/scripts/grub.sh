@@ -10,42 +10,39 @@ echo "==> Detecting distro: $DISTRO_ID"
 case "$DISTRO_ID" in
   ubuntu|debian)
     echo "-> Ubuntu/Debian"
-    sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
-    sudo update-grub
-    ;;
-
-  rocky|rhel|centos|almalinux|fedora)
-    echo "-> Rocky/RHEL/Fedora"
-    sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
-    if [ -d /sys/firmware/efi ]; then
-      CFG_PATH="/boot/efi/EFI/$(ls /boot/efi/EFI | head -n1)/grub.cfg"
+    if [ -f /etc/default/grub ]; then
+    	sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
+    	sudo update-grub
     else
-      CFG_PATH="/boot/grub2/grub.cfg"
+    	echo "   No /etc/default/grub found. Skipping."
     fi
-    sudo grub2-mkconfig -o "$CFG_PATH"
     ;;
 
-  opensuse*|suse)
-    echo "-> openSUSE"
-    sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
-    CFG_PATH="/boot/grub2/grub.cfg"
-    sudo grub2-mkconfig -o "$CFG_PATH"
+  rocky|rhel|centos|almalinux|fedora|opensuse*|suse)
+    echo "-> RHEL/SUSE family"
+    if [ -f /etc/default/grub ]; then
+    	sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
+    	sudo grub2-mkconfig -o "$CFG_PATH"
+    else
+    	echo "   No /etc/default/grub found. Skipping."
+    fi
     ;;
 
   alpine)
     echo "-> Alpine"
     if [ -f /boot/syslinux/syslinux.cfg ]; then
-      echo "   (syslinux)"
-      # syslinux usa décimas de segundo
-      SYSL_TIMEOUT=$((NEW_TIMEOUT * 10))
-      sudo sed -i "s/^TIMEOUT.*/TIMEOUT ${SYSL_TIMEOUT}/" /boot/syslinux/syslinux.cfg
+      	echo "   (syslinux)"
+      	# syslinux usa décimas de segundo
+      	SYSL_TIMEOUT=$((NEW_TIMEOUT * 10))
+      	sudo sed -i "s/^TIMEOUT.*/TIMEOUT ${SYSL_TIMEOUT}/" /boot/syslinux/syslinux.cfg
     elif [ -f /etc/default/grub ]; then
-      echo "   (GRUB)"
-      sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
-      sudo grub-mkconfig -o /boot/grub/grub.cfg
+      	echo "   (GRUB)"
+      	sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
+      	sudo grub-mkconfig -o /boot/grub/grub.cfg
     else
-      echo "   No GRUB nor syslinux, aborta."
-      exit 1
+    	echo "   (efibootmgr/aboot or unknown bootloader)"
+      	echo "   No GRUB/syslinux config found. This is normal for fast-boot EFI."
+      	echo "   Skipping timeout change."
     fi
     ;;
 
