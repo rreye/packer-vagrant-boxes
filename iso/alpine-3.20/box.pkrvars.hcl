@@ -22,7 +22,7 @@ boot_command = [
     "ifconfig eth0 up<enter><wait>",
     "udhcpc -i eth0<enter><wait2s>",	# Configure network via DHCP
     "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answerfile<enter><wait>", # Download answerfile
-    "echo \"root:vagrant\" | chpasswd -m<enter><wait>",
+    "echo \"root:vagrant\" | chpasswd<enter><wait>",
     "mkdir -p /etc/ssh/sshd_config.d<enter>",
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
     "yes | setup-alpine -e -f answerfile<enter><wait20s>", 	# Run setup with answerfile

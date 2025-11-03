@@ -25,12 +25,15 @@ boot_command = [
   "<enter><wait>"
 ]
 
-# Execute command
-execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
-
 # User/password for initial SSH
 ssh_username = "vagrant"
 ssh_password = "vagrant"
+
+# Execute command
+execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+
+# Reboot command
+reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 
 # Shutdown command
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"

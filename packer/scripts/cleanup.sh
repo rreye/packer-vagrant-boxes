@@ -19,10 +19,6 @@ elif [ -f "/usr/bin/zypper" ]; then
 	zypper clean --all
 	rm -rf /var/cache/zypp/packages
 elif [ -f "/sbin/apk" ]; then
-	ORPHANS=$(apk info --orphaned || true)
-	if [ -n "$ORPHANS" ]; then
-      		apk del $ORPHANS
-    	fi
 	apk cache clean
 	rm -rf /var/cache/apk/*
 fi
@@ -34,23 +30,30 @@ find /var/log -type f -delete
 
 # Remove machine-id to force regeneration on first boot
 truncate -s 0 /etc/machine-id
-rm /var/lib/dbus/machine-id
+if [ -f "/var/lib/dbus/machine-id" ]; then
+	rm /var/lib/dbus/machine-id
+fi
 ln -s /etc/machine-id /var/lib/dbus/machine-id
 
 # Force a new random seed to be generated"
-rm -f /var/lib/systemd/random-seed
+if [ -f "/var/lib/systemd/random-seed" ]; then
+  rm -f /var/lib/systemd/random-seed
+fi
 
 # Clear bash history (if bash is used)
 unset HISTFILE
 if [ -f /home/vagrant/.bash_history ]; then
-  rm -f /root/.bash_history
   rm -f /home/vagrant/.bash_history
 fi
-
+if [ -f /root/vagrant/.bash_history ]; then
+  rm -f /root/.bash_history
+fi
 # Clear ash history (Default Alpine shell)
 if [ -f /home/vagrant/.ash_history ]; then
-  rm -f /root/.ash_history
   rm -f /home/vagrant/.ash_history
+fi
+if [ -f /root/vagrant/.ash_history ]; then
+  rm -f /root/.ash_history
 fi
 
 echo "==> Zeroing free space to shrink box..."
@@ -88,6 +91,7 @@ if [ "x${swapuuid}" != "x" ]; then
     /sbin/mkswap -U "$swapuuid" "$swappart" || echo "mkswap exit code $? is suppressed";
 fi
 
+sync;
 sync;
 sync;
 
