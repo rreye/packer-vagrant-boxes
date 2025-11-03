@@ -32,8 +32,13 @@ elif [ -f "/usr/bin/zypper" ]; then
 	zypper refresh -y
 	zypper install -y perl cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
+	echo "==> Alpine detected. Installing using apk"
 	apk update
-	apk add --no-cache make gcc perl linux-headers
+	apk add --no-cache virtualbox-guest-additions
+	rc-service virtualbox-guest-additions start
+	rc-update add virtualbox-guest-additions boot
+	echo "==> Guest virtualbox tools complete."
+	exit 0
 fi
 
 if [ ! -f /tmp/VBoxGuestAdditions_$VERSION.iso ]; then
