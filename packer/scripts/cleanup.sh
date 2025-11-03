@@ -5,20 +5,32 @@ echo "==> Running cleanup script..."
 if [ -f "/usr/bin/dnf" ]; then
 	dnf autoremove -y
 	dnf clean all
+	rm -rf /var/cache/dnf
 elif [ -f "/usr/bin/apt-get" ]; then
 	apt-get autoremove -y
 	apt-get clean -y
+	apt-get autoclean
+	rm -rf /var/lib/apt/lists/*
 elif [ -f "/usr/bin/zypper" ]; then
-	zypper remove-orphans
+	ORPHANS=$(zypper -q packages --orphaned | awk '{print $5}')
+    	if [ -n "$ORPHANS" ]; then
+      		zypper -n rm $ORPHANS
+    	fi
 	zypper clean --all
+	rm -rf /var/cache/zypp/packages
 elif [ -f "/sbin/apk" ]; then
+	ORPHANS=$(apk info --orphaned || true)
+	if [ -n "$ORPHANS" ]; then
+      		apk del $ORPHANS
+    	fi
 	apk cache clean
 	rm -rf /var/cache/apk/*
 fi
 
-# Remove temporary files
-find /var/cache -type f -exec rm -rf {} \;
+# Remove temporary files and logs
 rm -rf /tmp/* /var/tmp/*
+find /var/cache -type f -exec rm -rf {} \;
+find /var/log -type f -delete
 
 # Remove machine-id to force regeneration on first boot
 truncate -s 0 /etc/machine-id
