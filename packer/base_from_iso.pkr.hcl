@@ -19,11 +19,13 @@ variable "iso_url_amd64" { type = string }
 variable "iso_checksum_amd64" { type = string }
 variable "iso_url_arm64" { type = string }
 variable "iso_checksum_arm64" { type = string }
-variable "http_directory" { type = string }     # Path to unattended install files (relative to var file)
-variable "boot_command" { type = list(string) } # Keystrokes for unattended install boot
 variable "ssh_username" { type = string }
 variable "ssh_password" { type = string }
+variable "http_directory" { type = string }     # Path to unattended install files (relative to var file)
+variable "boot_command" { type = list(string) } # Keystrokes for unattended install boot
+variable "execute_command" { type = string }	# Command to execute provisioning scripts
 variable "shutdown_command" { type = string }   # Command to shut down the VM cleanly
+variable "reboot_command" { type = string }	# Command to reboot the VM
 
 # VM resource variables
 variable "cpus" {
@@ -85,7 +87,7 @@ source "virtualbox-iso" "amd64" {
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "ova" # Required for vagrant post-processor
-  headless           = true
+  headless           = false
   guest_additions_mode = "disable"
 }
 
@@ -123,6 +125,7 @@ source "vmware-iso" "amd64" {
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
   ssh_read_write_timeout = "1m"
+  ssh_host 	     = "192.168.56.101"
   output_directory   = "output-vmware-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -142,6 +145,7 @@ source "vmware-iso" "arm64" {
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
   ssh_read_write_timeout = "1m"
+  ssh_host 	     = "192.168.56.101"
   output_directory   = "output-vmware-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -168,8 +172,8 @@ source "qemu" "amd64" {
   disk_size          = "${var.disk_size}M" # Qemu needs unit
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
-  headless           = true
-  use_default_display = true
+  headless           = false
+  use_default_display = false
   # AMD64 specific settings
   machine_type       = "q35"
   cpu_model          = "host"
@@ -221,7 +225,7 @@ build {
 
   # --- Vagrant user config ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/vagrant.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -229,15 +233,23 @@ build {
 
   # --- SSHD ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/sshd.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
 
+  # --- GRUB config ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = ["${path.root}/scripts/grub.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   # --- OS customization ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = var.provision_scripts
     expect_disconnect = true
     timeout         = "30m"
@@ -245,8 +257,12 @@ build {
 
   # --- Force reboot ---
   provisioner "shell" {
-    pause_after = "1m"
-    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    pause_after = "30s"
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -255,7 +271,7 @@ build {
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -264,7 +280,7 @@ build {
   provisioner "shell" {
     only = ["vmware-iso.amd64", "source.vmware-iso.arm64"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -273,7 +289,7 @@ build {
   provisioner "shell" {
     only = ["qemu.amd64", "qemu.arm64"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -281,8 +297,12 @@ build {
 
   # --- Force reboot ---
   provisioner "shell" {
-    pause_after = "1m"
-    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    pause_after = "30s"
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -290,7 +310,7 @@ build {
   # --- Cleanup ---
   provisioner "shell" {
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/cleanup.sh"]
     expect_disconnect = true
     timeout         = "30m"

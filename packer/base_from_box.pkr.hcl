@@ -16,6 +16,8 @@ variable "base_box" { type = string }        		# e.g., "bento/ubuntu-24.04"
 variable "base_box_version" { type = string }        	# e.g., ">= 4.3.0"
 variable "build_arch" { type = string }         	# Passed from workflow: "arm64" or "amd64"
 variable "provision_scripts" { type = list(string) }	# List of shell scripts to run
+variable "execute_command" { type = string }		# Command to execute provisioning scripts
+variable "reboot_command" { type = string }		# Command to reboot the VM
 
 # --- 2. Builder Definitions (Sources) ---
 source "vagrant" "virtualbox" {
@@ -80,7 +82,7 @@ build {
 
   # --- Vagrant user config ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/vagrant.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -88,15 +90,23 @@ build {
 
   # --- SSHD ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/sshd.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- GRUB config ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = ["${path.root}/scripts/grub.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
 
   # --- OS customization ---
   provisioner "shell" {
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = var.provision_scripts
     expect_disconnect = true
     timeout         = "30m"
@@ -105,7 +115,11 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     pause_after = "1m"
-    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -114,7 +128,7 @@ build {
   provisioner "shell" {
     only = ["vagrant.virtualbox"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -123,7 +137,7 @@ build {
   provisioner "shell" {
     only = ["vagrant.vmware"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -132,7 +146,7 @@ build {
   provisioner "shell" {
     only = ["vagrant.libvirt"]
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -141,7 +155,11 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     pause_after = "1m"
-    inline = ["echo Rebooting && echo 'vagrant' | sudo -S shutdown -rf now"]
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -149,7 +167,7 @@ build {
   # --- Cleanup ---
   provisioner "shell" {
     pause_before = "10s"
-    execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
+    execute_command = var.execute_command
     scripts = ["${path.root}/scripts/cleanup.sh"]
     expect_disconnect = true
     timeout         = "30m"
