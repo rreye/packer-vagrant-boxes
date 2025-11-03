@@ -17,12 +17,8 @@ iso_checksum_arm64 = "sha256:9ecd75a62d90ecedfc3f7fcdf46c349bb4ebfb79553514c9d96
 http_directory = "http" # Contains preseed.cfg
 boot_command = [
   "<wait5s>",
-  "install ",
-  "auto=true ",
-  "priority=critical ",
-  "preseed/url=http://{{ .HttpAddr }}/preseed.cfg ",
-  "initrd=/install.amd/initrd.gz ",
-  "<enter><wait>"
+  "<esc><wait>",
+  "auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg netcfg/get_hostname={{ .Name }}<enter><wait>"
 ]
 
 # User/password for initial SSH
