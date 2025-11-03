@@ -60,7 +60,9 @@ chown -R vagrant: $HOME_DIR/.ssh
 
 # Set vagrant user's shell to bash (if installed)
 if [ -f /bin/bash ]; then
-  chsh -s /bin/bash vagrant
+  if command -v chsh > /dev/null 2>&1; then
+    chsh -s /bin/bash vagrant
+  fi
 fi
 
 echo "==> Vagrant user configuration complete."
