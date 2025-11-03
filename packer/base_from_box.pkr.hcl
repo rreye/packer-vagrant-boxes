@@ -114,7 +114,7 @@ build {
 
   # --- Force reboot ---
   provisioner "shell" {
-    pause_after = "1m"
+    pause_after = "30s"
     inline = [
       "echo 'Rebooting in background...'",
       "nohup ${var.reboot_command} &",
@@ -134,6 +134,19 @@ build {
     timeout         = "30m"
   }
   
+  # --- Force reboot ---
+  provisioner "shell" {
+    only = ["vagrant.virtualbox"]
+    pause_after = "30s"
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   provisioner "shell" {
     only = ["vagrant.vmware"]
     pause_before = "10s"
@@ -148,18 +161,6 @@ build {
     pause_before = "10s"
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-
-  # --- Force reboot ---
-  provisioner "shell" {
-    pause_after = "1m"
-    inline = [
-      "echo 'Rebooting in background...'",
-      "nohup ${var.reboot_command} &",
-      "sleep 2"
-    ]
     expect_disconnect = true
     timeout         = "30m"
   }

@@ -276,6 +276,19 @@ build {
     expect_disconnect = true
     timeout         = "30m"
   }
+
+  # --- Force reboot ---
+  provisioner "shell" {
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
+    pause_after = "30s"
+    inline = [
+      "echo 'Rebooting in background...'",
+      "nohup ${var.reboot_command} &",
+      "sleep 2"
+    ]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
   
   provisioner "shell" {
     only = ["vmware-iso.amd64", "source.vmware-iso.arm64"]
@@ -291,18 +304,6 @@ build {
     pause_before = "10s"
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-
-  # --- Force reboot ---
-  provisioner "shell" {
-    pause_after = "30s"
-    inline = [
-      "echo 'Rebooting in background...'",
-      "nohup ${var.reboot_command} &",
-      "sleep 2"
-    ]
     expect_disconnect = true
     timeout         = "30m"
   }
