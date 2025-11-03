@@ -59,24 +59,28 @@ fi
 echo "==> Zeroing free space to shrink box..."
 
 # Whiteout root
-count=$(df --sync -kP / | tail -n1  | awk -F ' ' '{print $4}')
-count=$((count - 1))
-echo "==> Zeroing root partition..."
-dd if=/dev/zero of=/tmp/whitespace bs=1M count=$count || echo "dd exit code $? is suppressed";
+cat /dev/zero > /tmp/whitespace || true
 rm /tmp/whitespace
-
+    echo "Root zeroing complete."
+    
 # Whiteout /boot
-count=$(df --sync -kP /boot | tail -n1 | awk -F ' ' '{print $4}')
-count=$((count - 1))
-echo "==> Zeroing boot partition..."
-dd if=/dev/zero of=/boot/whitespace bs=1M count=$count || echo "dd exit code $? is suppressed";
-rm /boot/whitespace
+if [ -d /boot/grub ]; then
+    echo "==> Zeroing boot partition (/boot) ..."
+    cat /dev/zero > /boot/whitespace || true
+    rm /boot/whitespace
+    echo "Boot zeroing complete."
+else
+    echo "==> Skipping /boot (not a separate partition?)"
+fi
 
+echo "==> Locating swap partitions..."
 set +e
 swapuuid="$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)";
 case "$?" in
     2|0) ;;
-    *) exit 1 ;;
+    *) echo "No swap partition found by blkid. Skipping swap zero."
+    swapuuid=""
+    ;;
 esac
 set -e
 
@@ -89,10 +93,13 @@ if [ "x${swapuuid}" != "x" ]; then
     dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
     chmod 0600 "$swappart" || true;
     /sbin/mkswap -U "$swapuuid" "$swappart" || echo "mkswap exit code $? is suppressed";
+else
+    echo "==> No swap partition found to zero."
 fi
 
-sync;
-sync;
-sync;
+echo "==> Final sync to disk..."
+sync
+sync
+sync
 
 echo "==> Cleanup complete."
