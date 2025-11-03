@@ -2,7 +2,7 @@
 
 echo "==> Configuring Grub..."
 
-NEW_TIMEOUT=2  # segundos
+NEW_TIMEOUT=5  # segundos
 DISTRO_ID=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 
 echo "==> Detecting distro: $DISTRO_ID"
@@ -56,6 +56,5 @@ case "$DISTRO_ID" in
 esac
 
 echo "Timeout set to ${NEW_TIMEOUT}s."
-
 
 echo "==> Grub configuration complete."
