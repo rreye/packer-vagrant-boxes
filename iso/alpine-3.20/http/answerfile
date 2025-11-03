@@ -33,9 +33,9 @@ SSHDOPTS=openssh
 # NTP Client (chrony)
 NTPOPTS=chrony
 
-# Disk setup (use sda/vda, wipe it, use for sys)
-# Adjust disk name if needed (e.g., vda for virtio)
-DISKOPTS="-m sys /dev/vda"
+# Disk setup
+FIRST_DISK=$(ls /sys/class/block | grep -vE '^(loop|ram|sr)' | head -n 1)
+DISKOPTS="-m sys /dev/${FIRST_DISK}"
 
 # Setup user
 USEROPTS="-a -u vagrant"
