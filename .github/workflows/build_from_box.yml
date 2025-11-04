@@ -1,11 +1,11 @@
-name: Build Vagrant Box
+name: Build Vagrant Boxes (from other boxes)
 
 on:
   # Allows this workflow to be run manually from the "Actions" tab
   workflow_dispatch:
     inputs:
       # A dropdown menu to select the box directory
-      box_name:
+      distro:
         description: 'Which box to build?'
         required: true
         type: choice
@@ -17,8 +17,8 @@ on:
         required: true
         type: choice
         options:
-          - arm64
           - amd64
+          - arm64
 
       # A menu to select the provider. These names MUST match
       # the start of the 'name' of your 'source' blocks in Packer.
@@ -34,7 +34,7 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ matrix.architecture }}])
+    name: Build (${{ matrix.provider }} on ${{ inputs.distro }} [${{ matrix.architecture }}])
     # GitHub runner
     runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
@@ -47,10 +47,19 @@ jobs:
         architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
-      - name: 1. Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 2. Install Vagrant
+      - name: Cache Packer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/packer
+          key: packer-${{ runner.os }}-${{ matrix.architecture }}-${{ hashFiles('**/*.pkr.hcl','**/*.pkrvars.hcl') }}
+          restore-keys: |
+            packer-${{ runner.os }}-${{ matrix.architecture }}-
+
+      - name: Install Vagrant
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing Vagrant on macOS (arm64)..."
@@ -66,7 +75,7 @@ jobs:
           echo "Vagrant installed."
           vagrant --version
 
-      - name: 3. Install Dependencies (QEMU / Libvirt)
+      - name: Install Dependencies (QEMU / Libvirt)
         if: matrix.provider == 'libvirt'
         run: |
           echo "Installing vagrant-libvirt plugin..."
@@ -84,7 +93,7 @@ jobs:
           fi
           echo "QEMU / Libvirt dependencies installed."
 
-      - name: 3. Install Dependencies (VirtualBox)
+      - name: Install Dependencies (VirtualBox)
         if: matrix.provider == 'virtualbox'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
@@ -103,7 +112,7 @@ jobs:
           echo "VirtualBox installed."
           vboxmanage --version
 
-      - name: 3. Install Dependencies (VMware)
+      - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
@@ -129,26 +138,51 @@ jobs:
           vmware --version
 
       # --- BUILD STEP ---
-      - name: 4. Validate and Build with Packer
+      - name: Validate and Build with Packer
         run: |
-          echo "Changing to directory: ${{ inputs.box_name }}"
-          cd box/${{ inputs.box_name }}
+          set -euo pipefail
+          PACKER_TEMPLATE="${{ github.workspace }}/template.pkr.hcl"
+          # parse distro -> os & ver (e.g., ubuntu-24.04 => ubuntu and 24.04)
+          DISTRO="${{ inputs.distro }}"
+          OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
+          VERSION="$(echo "$DISTRO" | cut -d- -f2)"
+          BOX_DIR="${{ github.workspace }}/os_configs/${OS_NAME}/${VERSION}/box"
+          
+          echo "Using BOX_DIR=${BOX_DIR}"
+          if [ ! -d "$BOX_DIR" ]; then
+            echo "Error: expected box directory not found: $BOX_DIR"
+            ls -la "$(dirname "$BOX_DIR")" || true
+            exit 1
+          fi
 
-          echo "Initializing Packer plugins..."
-          packer init ${{ github.workspace }}/packer/base_from_box.pkr.hcl
+          cd "$BOX_DIR"
+          echo "Initializing Packer template..."
+          packer init $PACKER_TEMPLATE
 
           echo "Validating Packer template..."
-          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ${{ github.workspace }}/packer/base_from_box.pkr.hcl
+          # use the box-specific pkrvars
+          if [ ! -f "box.pkrvars.hcl" ]; then
+            echo "Error: box.pkrvars.hcl not found in $BOX_DIR"
+            exit 1
+          fi
+          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" $PACKER_TEMPLATE
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" ${{ github.workspace }}/packer/base_from_box.pkr.hcl
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" $PACKER_TEMPLATE
 
       # --- ARTIFACT UPLOAD STEP ---
-      - name: 5. Upload Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: box-${{ inputs.box_name }}-${{ matrix.provider }}-${{ inputs.architecture }}
-          path: ./${{ inputs.box_name }}/package.box
+          name: ${{ inputs.distro }}-${{ inputs.architecture }}_${{ matrix.provider }}.box
+          path: ./output-*/package.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
+
+      - name: Upload packer log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packer-log-box-${{ github.run_number }}
+          path: packer-box.log
