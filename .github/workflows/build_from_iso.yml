@@ -130,8 +130,7 @@ jobs:
       - name: Validate and Build with Packer
         run: |
           set -euo pipefail
-          PACKER_TEMPLATE="{{ github.workspace }}/template.pkr.hcl"
-          echo "Using PACKER_TEMPLATE=${PACKER_TEMPLATE}"
+          PACKER_TEMPLATE="${{ github.workspace }}/template.pkr.hcl"
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
