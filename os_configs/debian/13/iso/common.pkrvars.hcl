@@ -21,4 +21,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
 # Scripts to run after OS install
-provision_scripts = ["${path.root}/scripts/os/debian/13-base.sh"]
+provision_scripts = ["debian/13-base.sh"]

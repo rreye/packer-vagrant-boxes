@@ -32,4 +32,4 @@ reboot_command = "reboot"
 shutdown_command = "poweroff"
 
 # Scripts to run after OS install
-provision_scripts = ["${path.root}/scripts/os/alpine/3.20-base.sh"]
+provision_scripts = ["alpine/3.20-base.sh"]

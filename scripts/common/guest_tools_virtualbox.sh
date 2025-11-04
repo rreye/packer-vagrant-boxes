@@ -3,21 +3,22 @@
 echo "==> Running guest virtualbox tools script..."
 
 VERSION=7.2.4
-ARCHITECTURE="$(uname -m)";
+ARCHITECTURE="$(uname -m)"
 
 if command -v VBoxService >/dev/null 2>&1; then
 	INSTALLED_VERSION=$(VBoxService --version || true)
-	echo -e "VBoxGuestAdditions installed version: $INSTALLED_VERSION"
+	echo "VBoxGuestAdditions installed version: $INSTALLED_VERSION"
 	INSTALLED_VERSION=${INSTALLED_VERSION%r*}
-	if [ $INSTALLED_VERSION == $VERSION ]; then
-		echo -e "No update is needed"
+	
+	if [ "$INSTALLED_VERSION" = "$VERSION" ]; then
+		echo "No update is needed"
 		exit 0
 	else
-		echo -e "Updating VBoxGuestAdditions_$INSTALLED_VERSION to $VERSION for architecture $ARCHITECTURE"
+		echo "Updating VBoxGuestAdditions_$INSTALLED_VERSION to $VERSION for architecture $ARCHITECTURE"
 	fi
 else
-	echo -e "VBoxGuestAdditions are not installed"
-	echo -e "Installing VBoxGuestAdditions_$VERSION for architecture $ARCHITECTURE"
+	echo "VBoxGuestAdditions are not installed"
+	echo "Installing VBoxGuestAdditions_$VERSION for architecture $ARCHITECTURE"
 fi
 
 if [ -f "/usr/bin/dnf" ]; then
@@ -41,12 +42,16 @@ elif [ -f "/sbin/apk" ]; then
 fi
 
 if [ ! -f /tmp/VBoxGuestAdditions_$VERSION.iso ]; then
-	echo -e "Downloading VBoxGuestAdditions_$VERSION"
-	wget https://download.virtualbox.org/virtualbox/$VERSION/VBoxGuestAdditions_$VERSION.iso >& /dev/null
+	echo "Downloading VBoxGuestAdditions_$VERSION"
+	wget https://download.virtualbox.org/virtualbox/$VERSION/VBoxGuestAdditions_$VERSION.iso >/dev/null 2>&1
 	mv VBoxGuestAdditions_$VERSION.iso /tmp
+	if [ ! -s /tmp/VBoxGuestAdditions_$VERSION.iso ]; then
+    		echo "Download failed!"
+    		exit 1
+	fi
 fi
 
-mkdir /mnt/VBoxGuestAdditions
+mkdir -p /mnt/VBoxGuestAdditions
 mount -o loop,ro /tmp/VBoxGuestAdditions_$VERSION.iso /mnt/VBoxGuestAdditions
 
 if [ ! -f /usr/sbin/vbox-uninstall-guest-additions ]; then
@@ -55,7 +60,7 @@ else
 	/usr/sbin/vbox-uninstall-guest-additions
 fi
 
-echo -e "Running install script..."
+echo "Running install script..."
 if [ "$ARCHITECTURE" = "aarch64" ]; then
 	/mnt/VBoxGuestAdditions/VBoxLinuxAdditions-arm64.run --nox11 || true
 else

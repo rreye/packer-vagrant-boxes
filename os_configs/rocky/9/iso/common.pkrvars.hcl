@@ -23,4 +23,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 shutdown_command = "echo 'vagrant' | sudo -S /sbin/halt -h -p"
 
 # Scripts to run after OS install
-provision_scripts = ["${path.root}/scripts/os/rocky/9-base.sh"]
+provision_scripts = ["rocky/9-base.sh"]

@@ -12,4 +12,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 # Shutdown command
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
-provision_scripts = ["scripts/provision.sh"]
+box_provision_scripts = ["scripts/provision.sh"]

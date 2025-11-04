@@ -12,12 +12,16 @@ packer {
 # --- 1. Input variables ---
 
 # --- 1. Common variables ---
-variable "box_name" { type = string }			# e.g., "ubuntu-24.04"
-variable "box_version" { type = string }        	# e.g., "1.0.0"
-variable "provision_scripts" { type = list(string) }	# List of shell scripts to run
-variable "execute_command" { type = string }		# Command to execute provisioning scripts
-variable "shutdown_command" { type = string }   	# Command to shut down the VM cleanly
-variable "reboot_command" { type = string }		# Command to reboot the VM
+variable "box_name" { type = string }		# e.g., "ubuntu-24.04"
+variable "box_version" { type = string }        # e.g., "1.0.0"
+variable "execute_command" { type = string }	# Command to execute provisioning scripts
+variable "shutdown_command" { type = string }   # Command to shut down the VM cleanly
+variable "reboot_command" { type = string }	# Command to reboot the VM
+
+variable "provision_scripts" {
+  type = list(string)
+  default = []
+}	
 
 variable "ssh_username" {
   type    = string
@@ -36,6 +40,10 @@ variable "base_box" {
 variable "base_box_version" {
   type    = string
   default = null
+}
+variable "box_provision_scripts" {
+  type = list(string)
+  default = []
 }
 
 # --- 1. Variables "ISO-only" ---
@@ -68,8 +76,6 @@ variable "boot_command" {
   type    = list(string)
   default = null
 }
-
-# --- 1. Variables for VM resources ---
 variable "cpus" {
   type = number
   default = 2
@@ -102,7 +108,9 @@ variable "guest_os_type_vmware_arm64" {
 locals {
   # Select ISO URL and checksum based on build_arch
   iso_url = var.build_arch == "arm64" ? var.iso_url_arm64 : var.iso_url_amd64
-  iso_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
+  raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
+  parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
+  iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
   # Select VMware guest OS type based on build_arch
   guest_os_type_vmware = var.build_arch == "arm64" ? var.guest_os_type_vmware_arm64 : var.guest_os_type_vmware_amd64
 }
@@ -110,8 +118,8 @@ locals {
 # --- 3. Builders (Sources) ---
 # --- VirtualBox ---
 source "vagrant" "virtualbox-box" {
-  source_path  = var.base_box
-  box_version  = var.base_box_version
+  source_path  = var.base_box == null ? "dummy" : var.base_box
+  box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "virtualbox"
   template     = "${path.root}/Vagrantfile.template"
   skip_add     = false
@@ -119,13 +127,13 @@ source "vagrant" "virtualbox-box" {
   communicator = "ssh"
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
-  ssh_timeout        = "20m"
+  ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
 }
 
 source "virtualbox-iso" "amd64" {
   guest_os_type      = var.guest_os_type_vbox
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -145,7 +153,7 @@ source "virtualbox-iso" "amd64" {
 
 source "virtualbox-iso" "arm64" {
   guest_os_type      = var.guest_os_type_vbox
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -168,8 +176,8 @@ source "virtualbox-iso" "arm64" {
 
 # --- VMware ---
 source "vagrant" "vmware-box" {
-  source_path  = var.base_box
-  box_version  = var.base_box_version
+  source_path  = var.base_box == null ? "dummy" : var.base_box
+  box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
   template     = "${path.root}/Vagrantfile.template"
   skip_add     = false
@@ -177,13 +185,13 @@ source "vagrant" "vmware-box" {
   communicator = "ssh"
   ssh_username = var.ssh_password
   ssh_password = var.ssh_password
-  ssh_timeout        = "20m"
+  ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
 }
 
 source "vmware-iso" "amd64" {
   guest_os_type      = local.guest_os_type_vmware
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -203,7 +211,7 @@ source "vmware-iso" "amd64" {
 
 source "vmware-iso" "arm64" {
   guest_os_type      = local.guest_os_type_vmware
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -224,8 +232,8 @@ source "vmware-iso" "arm64" {
 
 # --- QEMU ---
 source "vagrant" "libvirt-box" {
-  source_path  = var.base_box
-  box_version  = var.base_box_version
+  source_path  = var.base_box == null ? "dummy" : var.base_box
+  box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
   template     = "${path.root}/Vagrantfile.template"
   skip_add     = false
@@ -233,12 +241,12 @@ source "vagrant" "libvirt-box" {
   communicator = "ssh"
   ssh_username = var.ssh_password
   ssh_password = var.ssh_password
-  ssh_timeout        = "20m"
+  ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
 }
 
 source "qemu" "amd64" {
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -260,7 +268,7 @@ source "qemu" "amd64" {
 }
 
 source "qemu" "arm64" {
-  iso_url            = local.iso_url
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
@@ -311,7 +319,7 @@ build {
   # --- Vagrant user config ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/vagrant.sh"]
+    scripts = ["${path.root}/scripts/common/vagrant.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -319,7 +327,7 @@ build {
   # --- SSHD ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/sshd.sh"]
+    scripts = ["${path.root}/scripts/common/sshd.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -327,7 +335,7 @@ build {
   # --- GRUB config ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/grub.sh"]
+    scripts = ["${path.root}/scripts/common/grub.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -335,11 +343,19 @@ build {
   # --- OS customization ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = var.provision_scripts
+    scripts = length(var.provision_scripts) > 0 ? [for script_path in var.provision_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
 
+  # --- Box customization ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = length(var.box_provision_scripts) > 0 ? var.box_provision_scripts : ["${path.root}/scripts/common/noop.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   # --- Force reboot ---
   provisioner "shell" {
     pause_after = "30s"
@@ -356,7 +372,7 @@ build {
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox-box"]
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
+    scripts = ["${path.root}/scripts/common/guest_tools_virtualbox.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -377,7 +393,7 @@ build {
   provisioner "shell" {
     only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware-box"]
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
+    scripts = ["${path.root}/scripts/common/guest_tools_vmware.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -385,7 +401,7 @@ build {
   provisioner "shell" {
     only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt-box"]
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
+    scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -393,7 +409,7 @@ build {
   # --- Cleanup ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/cleanup.sh"]
+    scripts = ["${path.root}/scripts/common/cleanup.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }

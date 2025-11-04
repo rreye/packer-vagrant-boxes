@@ -24,4 +24,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
 # Scripts to run after OS install
-provision_scripts = ["${path.root}/scripts/os/ubuntu/24.04-base.sh"]
+provision_scripts = ["ubuntu/24.04-base.sh"]
