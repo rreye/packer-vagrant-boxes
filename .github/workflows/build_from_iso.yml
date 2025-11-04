@@ -151,7 +151,8 @@ jobs:
             VERSION_PKR=$(ls versions/*.pkrvars.hcl 2>/dev/null | sort | tail -n1 || true)
           else
             VERSION_PKR="versions/${{ inputs.iso_version }}.pkrvars.hcl"
-            
+          fi
+          
           if [ ! -f "$VERSION_PKR" ]; then
             echo "Error: version file not found: $VERSION_PKR"
             ls -la versions || true
