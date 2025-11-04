@@ -83,7 +83,7 @@ jobs:
           echo "QEMU dependencies installed."
 
       - name: Install Dependencies (VirtualBox)
-        if: matrix.provider == 'virtualbox'
+        if: matrix.provider == 'virtualbox-iso'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing VirtualBox on macOS (arm64)..."
@@ -102,7 +102,7 @@ jobs:
           vboxmanage --version
 
       - name: Install Dependencies (VMware)
-        if: matrix.provider == 'vmware'
+        if: matrix.provider == 'vmware-iso'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
           VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
