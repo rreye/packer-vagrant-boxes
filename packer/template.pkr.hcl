@@ -1,33 +1,75 @@
-// File: packer/base_from_iso.pkr.hcl
-// Master template for building Vagrant boxes from ISO files.
+// File: packer/template.pkr.hcl
+// Master template for building Vagrant boxes from ISO files and/or existing boxes.
 packer {
   required_plugins {
     virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
     vmware     = { version = ">= 1.2.0", source = "github.com/hashicorp/vmware" }
     qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
+    vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
   }
 }
 
-# --- 1. Input Variables ---
+# --- 1. Input variables ---
+
+# --- 1. Common variables ---
 variable "box_name" { type = string }			# e.g., "ubuntu-24.04"
 variable "box_version" { type = string }        	# e.g., "1.0.0"
-variable "build_arch" { type = string }         	# Passed from workflow: "arm64" or "amd64"
 variable "provision_scripts" { type = list(string) }	# List of shell scripts to run
+variable "execute_command" { type = string }		# Command to execute provisioning scripts
+variable "shutdown_command" { type = string }   	# Command to shut down the VM cleanly
+variable "reboot_command" { type = string }		# Command to reboot the VM
 
-# ISO specific variables
-variable "iso_url_amd64" { type = string }
-variable "iso_checksum_amd64" { type = string }
-variable "iso_url_arm64" { type = string }
-variable "iso_checksum_arm64" { type = string }
-variable "ssh_username" { type = string }
-variable "ssh_password" { type = string }
-variable "http_directory" { type = string }     # Path to unattended install files (relative to var file)
-variable "boot_command" { type = list(string) } # Keystrokes for unattended install boot
-variable "execute_command" { type = string }	# Command to execute provisioning scripts
-variable "shutdown_command" { type = string }   # Command to shut down the VM cleanly
-variable "reboot_command" { type = string }	# Command to reboot the VM
+variable "ssh_username" {
+  type    = string
+  default = "vagrant"
+}
+variable "ssh_password" {
+  type    = string
+  default = "vagrant"
+}
 
-# VM resource variables
+# --- 1. Variables "Box-only" ---
+variable "base_box" { 
+  type    = string
+  default = null
+}
+variable "base_box_version" {
+  type    = string
+  default = null
+}
+
+# --- 1. Variables "ISO-only" ---
+variable "build_arch" {
+  type    = string
+  default = null
+}
+
+variable "iso_url_amd64" {
+  type    = string
+  default = null
+}
+variable "iso_checksum_amd64" {
+  type    = string
+  default = null
+}
+variable "iso_url_arm64" {
+  type    = string
+  default = null
+}
+variable "iso_checksum_arm64" {
+  type    = string
+  default = null
+}
+variable "http_directory" {
+  type    = string
+  default = null
+}
+variable "boot_command" {
+  type    = list(string)
+  default = null
+}
+
+# --- 1. Variables for VM resources ---
 variable "cpus" {
   type = number
   default = 2
@@ -41,7 +83,7 @@ variable "disk_size" {
   default = 32768	# Disk size in MB (32GB default)
 }
 
-# Guest OS type variables (provider specific)
+# --- 1. Guest OS type variables (provider specific) ---
 variable "guest_os_type_vbox" {
   type = string
   default = "Other_64"
@@ -57,7 +99,6 @@ variable "guest_os_type_vmware_arm64" {
 
 # --- 2. Local Variables ---
 # (Helper variables derived from input)
-
 locals {
   # Select ISO URL and checksum based on build_arch
   iso_url = var.build_arch == "arm64" ? var.iso_url_arm64 : var.iso_url_amd64
@@ -67,10 +108,21 @@ locals {
 }
 
 # --- 3. Builders (Sources) ---
-# One source block per provider and architecture combination.
-# The name format provider.arch (e.g., "virtualbox-iso.amd64") is used by the workflow.
-
 # --- VirtualBox ---
+source "vagrant" "virtualbox-box" {
+  source_path  = var.base_box
+  box_version  = var.base_box_version
+  provider     = "virtualbox"
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
+  communicator = "ssh"
+  ssh_username = var.ssh_username
+  ssh_password = var.ssh_password
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
+}
+
 source "virtualbox-iso" "amd64" {
   guest_os_type      = var.guest_os_type_vbox
   iso_url            = local.iso_url
@@ -115,6 +167,20 @@ source "virtualbox-iso" "arm64" {
 }
 
 # --- VMware ---
+source "vagrant" "vmware-box" {
+  source_path  = var.base_box
+  box_version  = var.base_box_version
+  provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
+  communicator = "ssh"
+  ssh_username = var.ssh_password
+  ssh_password = var.ssh_password
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
+}
+
 source "vmware-iso" "amd64" {
   guest_os_type      = local.guest_os_type_vmware
   iso_url            = local.iso_url
@@ -157,6 +223,20 @@ source "vmware-iso" "arm64" {
 }
 
 # --- QEMU ---
+source "vagrant" "libvirt-box" {
+  source_path  = var.base_box
+  box_version  = var.base_box_version
+  provider     = "libvirt" # This will use QEMU on the runner
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
+  communicator = "ssh"
+  ssh_username = var.ssh_password
+  ssh_password = var.ssh_password
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
+}
+
 source "qemu" "amd64" {
   iso_url            = local.iso_url
   iso_checksum       = local.iso_checksum
@@ -196,7 +276,7 @@ source "qemu" "arm64" {
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
   headless           = true
-  use_default_display = true
+  use_default_display = false
   # ARM specific settings
   machine_type       = "virt"
   cpu_model          = "cortex-a76"
@@ -206,12 +286,17 @@ source "qemu" "arm64" {
 build {
   # List all possible sources
   sources = [
+    # ISO
     "source.virtualbox-iso.amd64",
     "source.virtualbox-iso.arm64",
     "source.vmware-iso.amd64",
     "source.vmware-iso.arm64",
     "source.qemu.amd64",
-    "source.qemu.arm64"
+    "source.qemu.arm64",
+    # BOX
+    "source.vagrant.virtualbox-box",
+    "source.vagrant.vmware-box",
+    "source.vagrant.libvirt-box"
   ]
 
   # Provisioning steps (common logic)
@@ -269,8 +354,7 @@ build {
   
   # --- Provider specific ---
   provisioner "shell" {
-    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
-    pause_before = "10s"
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox-box"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_virtualbox.sh"]
     expect_disconnect = true
@@ -279,7 +363,7 @@ build {
 
   # --- Force reboot ---
   provisioner "shell" {
-    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox-box"]
     pause_after = "30s"
     inline = [
       "echo 'Rebooting in background...'",
@@ -291,8 +375,7 @@ build {
   }
   
   provisioner "shell" {
-    only = ["vmware-iso.amd64", "source.vmware-iso.arm64"]
-    pause_before = "10s"
+    only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware-box"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_vmware.sh"]
     expect_disconnect = true
@@ -300,8 +383,7 @@ build {
   }
   
   provisioner "shell" {
-    only = ["qemu.amd64", "qemu.arm64"]
-    pause_before = "10s"
+    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt-box"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/guest_tools_qemu.sh"]
     expect_disconnect = true
@@ -310,7 +392,6 @@ build {
 
   # --- Cleanup ---
   provisioner "shell" {
-    pause_before = "10s"
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/cleanup.sh"]
     expect_disconnect = true
@@ -320,7 +401,7 @@ build {
   # --- 5. Post-Processing ---
   # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {
-    # Apply to all builds defined in this template
+    except = ["vagrant"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}_{{.Provider}}.box"
     compression_level = 9
     keep_input_artifact = false # Delete the intermediate VM files
