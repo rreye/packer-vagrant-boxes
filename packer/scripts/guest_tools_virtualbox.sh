@@ -21,8 +21,7 @@ else
 fi
 
 if [ -f "/usr/bin/dnf" ]; then
-	dnf update
-	dnf install -y --skip-broken cpp gcc make bzip2 tar kernel-headers kernel-devel kernel-uek-devel || true # not all these packages are on every system
+	dnf install --refresh -y cpp gcc make bzip2 tar kernel-headers kernel-devel
 elif [ -f "/usr/bin/apt-get" ]; then
 	export DEBIAN_FRONTEND=noninteractive
 	export DEBCONF_NONINTERACTIVE_SEEN=true
@@ -43,11 +42,11 @@ fi
 
 if [ ! -f /tmp/VBoxGuestAdditions_$VERSION.iso ]; then
 	echo -e "Downloading VBoxGuestAdditions_$VERSION"
-	wget https://download.virtualbox.org/virtualbox/$VERSION/VBoxGuestAdditions_$VERSION.iso
+	wget https://download.virtualbox.org/virtualbox/$VERSION/VBoxGuestAdditions_$VERSION.iso >& /dev/null
 	mv VBoxGuestAdditions_$VERSION.iso /tmp
 fi
 
-mkdir /mnt/VBoxGuestAdditions &> /dev/null
+mkdir /mnt/VBoxGuestAdditions
 mount -o loop,ro /tmp/VBoxGuestAdditions_$VERSION.iso /mnt/VBoxGuestAdditions
 
 if [ ! -f /usr/sbin/vbox-uninstall-guest-additions ]; then
@@ -56,6 +55,7 @@ else
 	/usr/sbin/vbox-uninstall-guest-additions
 fi
 
+echo -e "Running install script..."
 if [ "$ARCHITECTURE" = "aarch64" ]; then
 	/mnt/VBoxGuestAdditions/VBoxLinuxAdditions-arm64.run --nox11 || true
 else
@@ -68,7 +68,20 @@ rm /tmp/VBoxGuestAdditions_$VERSION.iso
 
 if ! modinfo vboxsf >/dev/null 2>&1; then
 	echo "Cannot find vbox kernel module. Installation of guest additions unsuccessful!"
+	sleep 1000
 	exit 1
 fi
 
+echo "removing kernel dev packages and compilers we no longer need"
+if [ -f "/bin/dnf" ]; then
+	dnf remove -y gcc cpp kernel-headers kernel-devel
+elif [ -f "/usr/bin/apt-get" ]; then
+	apt-get remove -y build-essential gcc g++ make libc6-dev dkms linux-headers-"$(uname -r)"
+elif [ -f "/usr/bin/zypper" ]; then
+	zypper -n rm -u kernel-default-devel gcc make
+fi
+
+echo "removing leftover logs"
+rm -rf /var/log/vboxadd*
+    
 echo "==> Guest virtualbox tools complete."
