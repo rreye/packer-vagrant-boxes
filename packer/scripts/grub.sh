@@ -22,7 +22,7 @@ case "$DISTRO_ID" in
     echo "-> RHEL/SUSE family"
     if [ -f /etc/default/grub ]; then
     	sudo sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" /etc/default/grub
-    	sudo grub2-mkconfig -o "$CFG_PATH"
+    	sudo grub2-mkconfig -o /etc/default/grub
     else
     	echo "   No /etc/default/grub found. Skipping."
     fi
