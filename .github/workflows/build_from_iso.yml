@@ -1,11 +1,11 @@
-name: Build Vagrant Box (from ISO)
+name: Build Vagrant Boxes (from ISO)
 
 on:
   # Allows this workflow to be run manually from the "Actions" tab
   workflow_dispatch:
     inputs:
       # A dropdown menu to select the box directory
-      box_name:
+      distro:
         description: 'Which box to build?'
         required: true
         type: choice
@@ -13,7 +13,13 @@ on:
           - ubuntu-24.04
           - alpine-3.20
           - rocky-9
-      
+          - debian-13
+  
+     iso_version:
+        description: 'ISO version (optional, e.g. 24.04.3). If empty, latest will be used'
+        required: false
+        default: ""
+          
       architecture:
         description: 'Which architecture?'
         required: true
@@ -36,7 +42,7 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.provider }} on ${{ inputs.box_name }} [${{ matrix.architecture }}])
+    name: Build (${{ matrix.provider }} on ${{ inputs.distro }} [${{ matrix.architecture }}])
     # GitHub runner
     runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
@@ -49,10 +55,19 @@ jobs:
         architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
-      - name: 1. Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 2. Install Dependencies (QEMU)
+      - name: Cache Packer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/packer
+          key: packer-${{ runner.os }}-${{ matrix.architecture }}-${{ hashFiles('**/*.pkr.hcl','**/*.pkrvars.hcl') }}
+          restore-keys: |
+            packer-${{ runner.os }}-${{ matrix.architecture }}-
+
+      - name: Install Dependencies (QEMU)
         if: matrix.provider == 'qemu'
         run: |
           # Linux (amd64) requires hypervisor packages
@@ -67,7 +82,7 @@ jobs:
           fi
           echo "QEMU dependencies installed."
 
-      - name: 2. Install Dependencies (VirtualBox)
+      - name: Install Dependencies (VirtualBox)
         if: matrix.provider == 'virtualbox'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
@@ -86,7 +101,7 @@ jobs:
           echo "VirtualBox installed."
           vboxmanage --version
 
-      - name: 2. Install Dependencies (VMware)
+      - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
@@ -112,26 +127,66 @@ jobs:
           vmware --version
 
       # --- BUILD STEP ---
-      - name: 3. Validate and Build with Packer
+      - name: Validate and Build with Packer
+        env:
+          PACKER_TEMPLATE: "{{ github.workspace }}/template.pkr.hcl"
         run: |
-          echo "Changing to directory: ${{ inputs.box_name }}"
-          cd iso/${{ inputs.box_name }}
+          set -euo pipefail
+          DISTRO="${{ inputs.distro }}"
+          OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
+          VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
+          ISO_DIR="${{ github.workspace }}/os_configs/${OS_NAME}/${VERSION_DIR}/iso"
+          echo "Using ISO_DIR=${ISO_DIR}"
+          
+          if [ ! -d "$ISO_DIR" ]; then
+            echo "Error: expected iso directory not found: $ISO_DIR"
+            ls -la "$(dirname "$ISO_DIR")" || true
+            exit 1
+          fi
 
-          echo "Initializing Packer plugins..."
-          packer init ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+          cd "${ISO_DIR}"
+          
+          if [ -z "${{ inputs.iso_version }}" ]; then
+            echo "No iso_version provided, selecting latest..."
+            VERSION_PKR=$(ls versions/*.pkrvars.hcl 2>/dev/null | sort | tail -n1 || true)
+          else
+            VERSION_PKR="versions/${{ inputs.iso_version }}.pkrvars.hcl"
+            
+          if [ ! -f "$VERSION_PKR" ]; then
+            echo "Error: version file not found: $VERSION_PKR"
+            ls -la versions || true
+            exit 1
+          fi
+
+          # Ensure common exists
+          if [ ! -f "common.pkrvars.hcl" ]; then
+            echo "Error: common.pkrvars.hcl not found in ${ISO_DIR}"
+            ls -la || true
+            exit 1
+          fi
+          
+          echo "Initializing Packer template..."
+          packer init $PACKER_TEMPLATE
 
           echo "Validating Packer template..."
-          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+          packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" $PACKER_TEMPLATE
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="${{ matrix.provider }}.${{ inputs.architecture }}" ${{ github.workspace }}/packer/base_from_iso.pkr.hcl
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ matrix.provider }}.${{ matrix.architecture }}" $PACKER_TEMPLATE
 
       # --- ARTIFACT UPLOAD STEP ---
-      - name: 4. Upload Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: box-${{ inputs.box_name }}-${{ matrix.provider }}-${{ inputs.architecture }}
-          path: ./${{ inputs.box_name }}/package.box
+          name: ${{ inputs.distro }}-${{ inputs.architecture }}--${{ inputs.iso_version }}_${{ matrix.provider }}.box
+          path: ./${{ inputs.distro }}-*.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
+ 
+      - name: Upload packer log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packer-log-iso-${{ github.run_number }}
+          path: packer-iso.log
