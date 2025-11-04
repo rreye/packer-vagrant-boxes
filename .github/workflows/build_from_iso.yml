@@ -15,7 +15,7 @@ on:
           - rocky-9
           - debian-13
   
-     iso_version:
+      iso_version:
         description: 'ISO version (optional, e.g. 24.04.3). If empty, latest will be used'
         required: false
         default: ""
