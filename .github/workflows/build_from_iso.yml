@@ -25,8 +25,8 @@ on:
         required: true
         type: choice
         options:
-          - arm64
           - amd64
+          - arm64
 
       # A menu to select the provider. These names MUST match
       # the start of the 'name' of your 'source' blocks in Packer.
@@ -128,10 +128,9 @@ jobs:
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
-        env:
-          PACKER_TEMPLATE: "{{ github.workspace }}/template.pkr.hcl"
         run: |
           set -euo pipefail
+          PACKER_TEMPLATE="{{ github.workspace }}/template.pkr.hcl"
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
