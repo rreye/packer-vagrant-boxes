@@ -117,7 +117,7 @@ locals {
 
 # --- 3. Builders (Sources) ---
 # --- VirtualBox ---
-source "vagrant" "virtualbox-box" {
+source "vagrant" "virtualbox" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "virtualbox"
@@ -175,7 +175,7 @@ source "virtualbox-iso" "arm64" {
 }
 
 # --- VMware ---
-source "vagrant" "vmware-box" {
+source "vagrant" "vmware" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
@@ -231,7 +231,7 @@ source "vmware-iso" "arm64" {
 }
 
 # --- QEMU ---
-source "vagrant" "libvirt-box" {
+source "vagrant" "libvirt" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "libvirt" # This will use QEMU on the runner
@@ -302,9 +302,9 @@ build {
     "source.qemu.amd64",
     "source.qemu.arm64",
     # BOX
-    "source.vagrant.virtualbox-box",
-    "source.vagrant.vmware-box",
-    "source.vagrant.libvirt-box"
+    "source.vagrant.virtualbox",
+    "source.vagrant.vmware",
+    "source.vagrant.libvirt"
   ]
 
   # Provisioning steps (common logic)
