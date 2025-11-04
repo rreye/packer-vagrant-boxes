@@ -137,6 +137,7 @@ source "virtualbox-iso" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -157,6 +158,7 @@ source "virtualbox-iso" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -195,6 +197,7 @@ source "vmware-iso" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -215,6 +218,7 @@ source "vmware-iso" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -250,6 +254,7 @@ source "qemu" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "30m"
@@ -272,6 +277,7 @@ source "qemu" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
+  boot_wait          = "30s"
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -370,7 +376,7 @@ build {
   
   # --- Provider specific ---
   provisioner "shell" {
-    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox-box"]
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/guest_tools_virtualbox.sh"]
     expect_disconnect = true
@@ -379,7 +385,7 @@ build {
 
   # --- Force reboot ---
   provisioner "shell" {
-    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox-box"]
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
     pause_after = "30s"
     inline = [
       "echo 'Rebooting in background...'",
@@ -391,7 +397,7 @@ build {
   }
   
   provisioner "shell" {
-    only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware-box"]
+    only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/guest_tools_vmware.sh"]
     expect_disconnect = true
@@ -399,7 +405,7 @@ build {
   }
   
   provisioner "shell" {
-    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt-box"]
+    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
     expect_disconnect = true
@@ -417,7 +423,7 @@ build {
   # --- 5. Post-Processing ---
   # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {
-    except = ["vagrant"]
+    except = ["vagrant.virtualbox", "vagrant.vmware", "vagrant.libvirt"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}_{{.Provider}}.box"
     compression_level = 9
     keep_input_artifact = false # Delete the intermediate VM files
