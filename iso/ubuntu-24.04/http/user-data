@@ -39,7 +39,6 @@ autoinstall:
     - curl
     - wget
     - vim
-    - open-vm-tools
 
   early-commands:
     - systemctl stop ssh.socket
