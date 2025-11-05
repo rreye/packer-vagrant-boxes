@@ -8,7 +8,7 @@ guest_os_type_vmware_arm64 = "arm-ubuntu-64"
 # Autoinstall configuration
 http_directory = "http" # Contains user-data and meta-data
 boot_command = [
-  "<wait5s>",
+  "<wait2s>",
   "c<wait>",     # Select boot command prompt
   "linux /casper/vmlinuz ip=dhcp autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ net.ifnames=0<enter><wait>",
   "<wait2s>",
