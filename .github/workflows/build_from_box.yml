@@ -137,7 +137,6 @@ jobs:
           fi
           echo "VirtualBox installed."
           vboxmanage --version
-          sudo /usr/sbin/vboxconfig
   
       - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
