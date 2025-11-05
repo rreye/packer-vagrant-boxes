@@ -202,7 +202,7 @@ jobs:
         if: failure()
         run: |
           echo "--- Build failed. Running post-mortem debug ---"
-          if [ "${{ matrix.provider }}" != '"virtualbox-iso" ]; then
+          if [ "${{ matrix.provider }}" != "virtualbox-iso" ]; then
             echo "VirtualBox provider not used"
             exit 1
           fi
