@@ -69,6 +69,7 @@ jobs:
             fi
           fi
           uname -a
+          df -h
           sudo mkdir -p /mnt/packer_cache /mnt/packer_tmp /mnt/tmp /mnt/vagrant_home /mnt/packer_output /mnt/boxes
           sudo chmod -R 777 /mnt/packer_cache /mnt/packer_tmp /mnt/tmp /mnt/vagrant_home /mnt/packer_output /mnt/boxes
     
