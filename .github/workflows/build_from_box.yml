@@ -168,12 +168,18 @@ jobs:
       - name: Validate and Build with Packer
         run: |
           set -euo pipefail
-          PACKER_TEMPLATE="${{ github.workspace }}/template.pkr.hcl"
+          sudo mkdir -p /mnt/repo
+          sudo chmod -R 777 /mnt/repo
+          REPO="${{ github.workspace }}"
+          mv $REPO /mnt/repo
+          REPO_HOME=/mnt/repo
+          PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
+          
           # parse distro -> os & ver (e.g., ubuntu-24.04 => ubuntu and 24.04)
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION="$(echo "$DISTRO" | cut -d- -f2)"
-          BOX_DIR="${{ github.workspace }}/os_configs/${OS_NAME}/${VERSION}/box"
+          BOX_DIR=$REPO_HOME/os_configs/${OS_NAME}/${VERSION}/box"
           
           echo "Using BOX_DIR=${BOX_DIR}"
           if [ ! -d "$BOX_DIR" ]; then
