@@ -18,10 +18,16 @@ variable "execute_command" { type = string }	# Command to execute provisioning s
 variable "shutdown_command" { type = string }   # Command to shut down the VM cleanly
 variable "reboot_command" { type = string }	# Command to reboot the VM
 
+
+variable "boot_wait" {
+  type = string
+  default = "20s"
+}
+
 variable "provision_scripts" {
   type = list(string)
   default = []
-}	
+}
 
 variable "ssh_username" {
   type    = string
@@ -138,7 +144,7 @@ source "virtualbox-iso" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -168,7 +174,7 @@ source "virtualbox-iso" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
@@ -213,12 +219,11 @@ source "vmware-iso" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
   ssh_read_write_timeout = "1m"
-  ssh_host 	     = "192.168.56.101"
   output_directory   = "output-vmware-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -234,12 +239,11 @@ source "vmware-iso" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
   ssh_read_write_timeout = "1m"
-  ssh_host 	     = "192.168.56.101"
   output_directory   = "output-vmware-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -270,10 +274,10 @@ source "qemu" "amd64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
-  ssh_timeout        = "30m"
+  ssh_timeout        = "20m"
   output_directory   = "output-qemu-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -296,7 +300,7 @@ source "qemu" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command       = var.boot_command
-  boot_wait          = "30s"
+  boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
