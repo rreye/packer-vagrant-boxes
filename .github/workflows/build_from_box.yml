@@ -66,11 +66,17 @@ jobs:
             fi
           fi
           uname -a
-    
-      - name: Setup Packer
-        uses: hashicorp/setup-packer@main
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
         with:
-          version: latest
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Install Vagrant
         run: |
@@ -195,6 +201,7 @@ jobs:
             exit 1
           fi
 
+          df -h
           cd "$BOX_DIR"
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
