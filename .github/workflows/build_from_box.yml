@@ -58,11 +58,15 @@ jobs:
 
       - name: Checks
         run: |
-          lscpu | grep Virtualization
-          VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
-          echo "VCORES=$VCORES"
-          if [ "$VCORES" -lt 1 ]; then
-            echo "Nested virtualization not found!"
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            sysctl -n kern.hv_support
+          else 
+            lscpu | grep Virtualization
+            VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
+            echo "VCORES=$VCORES"
+            if [ "$VCORES" -lt 1 ]; then
+              echo "Nested virtualization not found!"
+            fi
           fi
           uname -a
           sudo mkdir -p /mnt/packer_cache /mnt/packer_tmp /mnt/tmp /mnt/vagrant_home /mnt/packer_output /mnt/boxes
