@@ -133,9 +133,8 @@ jobs:
           fi
           echo "VirtualBox installed."
           vboxmanage --version
-          echo "Listing Runner IP Addresses:"
-          ip a
           sudo /usr/sbin/vboxconfig
+  
       - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
         env:
@@ -163,6 +162,8 @@ jobs:
           fi
           echo "VMware installed."
           vmware --version
+          echo "Compiling VMware modules..."
+          sudo vmware-modconfig --console --install-all
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
