@@ -56,9 +56,10 @@ jobs:
           VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
           echo "VCORES=$VCORES"
           if [ "$VCORES" -lt 1 ]; then
-            echo "NEsted virtualization not found!"
+            echo "Nested virtualization not found!"
           fi
-
+          uname -a
+          df -h
       - name: Setup Packer
         uses: hashicorp/setup-packer@main
         with:
