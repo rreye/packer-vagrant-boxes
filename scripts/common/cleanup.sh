@@ -57,21 +57,50 @@ if [ -f /root/vagrant/.ash_history ]; then
 fi
 
 echo "==> Zeroing free space to shrink box..."
+RESERVE_MB=10
+PARTITIONS=$(
+  lsblk -lnpo MOUNTPOINT,FSTYPE |
+  awk '$1 != "" && $2 ~ /ext[234]|xfs|btrfs|vfat|f2fs/ {print $1}' |
+  sort |
+  grep -v "^/$" |
+  { cat; printf "/\n"; }
+)
+echo "### Partitions detected:"
+printf "%s\n" "$PARTITIONS"
 
-# Whiteout root
-cat /dev/zero > /tmp/whitespace || true
-rm /tmp/whitespace
-    echo "Root zeroing complete."
-    
-# Whiteout /boot
-if [ -d /boot/grub ]; then
-    echo "==> Zeroing boot partition (/boot) ..."
-    cat /dev/zero > /boot/whitespace || true
-    rm /boot/whitespace
-    echo "Boot zeroing complete."
-else
-    echo "==> Skipping /boot (not a separate partition?)"
+wipe_partition() {
+    local mountpoint="$1"
+    local available
+    available=$(df --sync -BM -P "$mountpoint" | awk 'END{print $4}' | sed 's/M//')
+
+    if [ "$available" -le "$RESERVE_MB" ]; then
+        echo "Skipping ${mountpoint}: not enough free space (${available} MB)"
+        return
+    fi
+
+    local wipe_mb=$((available - RESERVE_MB))
+    echo "Filling ${wipe_mb} MB of free space with zeros..."
+
+    local outfile="${mountpoint%/}/whitespace"
+    [ "$mountpoint" = "/" ] && outfile="/whitespace"
+
+    dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
+    rm -f "$outfile"
+    sync
+}
+
+# Try automatic SSD trim if available
+if command -v fstrim >/dev/null 2>&1; then
+    echo "### Running fstrim on all mounted partitions..."
+    fstrim -av || true
 fi
+
+# Wipe partitions
+printf "%s\n" "$PARTITIONS" | while IFS= read -r PART; do
+  [ -z "$PART" ] && continue
+  echo "-> Wiping free space in $PART"
+  wipe_partition "$PART"
+done
 
 echo "==> Locating swap partitions..."
 set +e
@@ -93,13 +122,9 @@ if [ "x${swapuuid}" != "x" ]; then
     dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
     chmod 0600 "$swappart" || true;
     /sbin/mkswap -U "$swapuuid" "$swappart" || echo "mkswap exit code $? is suppressed";
-else
-    echo "==> No swap partition found to zero."
 fi
 
 echo "==> Final sync to disk..."
-sync
-sync
 sync
 
 echo "==> Cleanup complete."
