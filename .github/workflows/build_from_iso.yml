@@ -58,14 +58,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache Packer
-        uses: actions/cache@v4
+      - name: Checks
+        run: |
+          lscpu | grep Virtualization
+          VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
+          echo "VCORES=$VCORES"
+          if [ "$VCORES" -lt 1 ]; then
+            echo "NEsted virtualization not found!"
+          fi
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
         with:
-          path: |
-            ~/.cache/packer
-          key: packer-${{ runner.os }}-${{ matrix.architecture }}-${{ hashFiles('**/*.pkr.hcl','**/*.pkrvars.hcl') }}
-          restore-keys: |
-            packer-${{ runner.os }}-${{ matrix.architecture }}-
+          version: latest
 
       - name: Install Dependencies (QEMU)
         if: matrix.provider == 'qemu'
@@ -78,7 +83,19 @@ jobs:
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
-            sudo apt-get install -y qemu-system libvirt-daemon-system libvirt-clients ebtables dnsmasq-base
+            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev
+            echo "Enabling KVM..."
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+            sudo usermod -aG kvm $USER
+            sudo usermod -aG libvirt $USER
+            sudo chmod o+rw /var/run/libvirt/libvirt-sock
+            sudo systemctl start libvirtd
+            sudo systemctl status libvirtd
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "QEMU dependencies installed."
 
@@ -97,6 +114,9 @@ jobs:
             echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
             sudo apt-get update
             sudo apt-get install -y virtualbox-7.2
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "VirtualBox installed."
           vboxmanage --version
@@ -122,6 +142,9 @@ jobs:
             chmod +x vmware.bundle
             echo "Installing VMware..."
             sudo ./vmware.bundle --console --required --eulas-agreed
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "VMware installed."
           vmware --version
@@ -175,6 +198,49 @@ jobs:
           export PACKER_LOG=1
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ matrix.provider }}.${{ matrix.architecture }}" $PACKER_TEMPLATE
 
+      - name: Post-mortem debug (VirtualBox only)
+        if: failure()
+        run: |
+          echo "--- Build failed. Running post-mortem debug ---"
+          if [ "${{ matrix.provider }}" != '"virtualbox-iso" ]; then
+            echo "VirtualBox provider not used"
+            exit 1
+          fi
+          
+          echo "Listing VirtualBox VMs:"
+          vboxmanage list vms
+          
+          echo "Listing Host-Only Interfaces:"
+          vboxmanage list hostonlyifs
+          
+          echo "Listing Runner IP Addresses:"
+          ip a
+
+          echo "Attempting to find VM log..."
+          VM_NAME=$(vboxmanage list runningvms | awk -F'"' '{print $2}' | head -n 1)
+          
+          if [ -z "$VM_NAME" ]; then
+            VM_NAME=$(vboxmanage list vms | awk -F'"' '{print $2}' | head -n 1)
+          fi
+
+          if [ -n "$VM_NAME" ]; then
+            echo "Found VM: $VM_NAME"
+            echo "--- Dumping VM Info ---"
+            vboxmanage showvminfo "$VM_NAME"
+            
+            echo "--- Dumping VM Log (VBox.log) ---"
+            LOG_PATH=$(vboxmanage showvminfo "$VM_NAME" --machinereadable | grep "LogFile=" | awk -F'"' '{print $2}')
+            
+            if [ -f "$LOG_PATH" ]; then
+              cat "$LOG_PATH"
+            else
+              echo "VM Log file not found at: $LOG_PATH"
+            fi
+          else
+            echo "Could not determine VM name. No logs to dump."
+          fi
+          echo "--- End of post-mortem debug ---"
+      
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
