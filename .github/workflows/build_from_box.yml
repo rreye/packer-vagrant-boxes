@@ -109,7 +109,10 @@ jobs:
             sudo usermod -aG kvm $USER
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
-            sudo systemctl start libvirtd
+            sudo mkdir /mnt/images
+            sudo chmod 777 /mnt/images
+            sudo ln - s /mnt/images /var/lib/libvirt/images
+            sudo systemctl restart libvirtd
             sudo systemctl status libvirtd
             echo "Installing vagrant-libvirt plugin..."
             vagrant plugin install vagrant-libvirt
