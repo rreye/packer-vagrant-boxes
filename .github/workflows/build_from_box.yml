@@ -132,7 +132,9 @@ jobs:
           fi
           echo "VirtualBox installed."
           vboxmanage --version
-
+          echo "Listing Runner IP Addresses:"
+          ip a
+          sudo /usr/sbin/vboxconfig
       - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
         env:
@@ -200,7 +202,7 @@ jobs:
         if: failure()
         run: |
           echo "--- Build failed. Running post-mortem debug ---"
-          if [ "${{ matrix.provider }}" != "virtualbox-iso" ]; then
+          if [ "${{ matrix.provider }}" != "virtualbox" ]; then
             echo "VirtualBox provider not used"
             exit 0
           fi
