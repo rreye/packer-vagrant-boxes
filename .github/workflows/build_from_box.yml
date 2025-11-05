@@ -171,8 +171,9 @@ jobs:
           sudo mkdir -p /mnt/repo
           sudo chmod -R 777 /mnt/repo
           REPO="${{ github.workspace }}"
-          cp -r $REPO /mnt/repo
+          cp -r $REPO/* /mnt/repo
           REPO_HOME=/mnt/repo
+          ls $REPO_HOME
           PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
           
           # parse distro -> os & ver (e.g., ubuntu-24.04 => ubuntu and 24.04)
