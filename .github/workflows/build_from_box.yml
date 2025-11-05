@@ -115,9 +115,6 @@ jobs:
             sudo usermod -aG kvm $USER
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
-            sudo mkdir /mnt/images
-            sudo chmod 777 /mnt/images
-            sudo ln -s /var/lib/libvirt/images /mnt/images
             sudo systemctl restart libvirtd
             sudo systemctl status libvirtd
             echo "Installing vagrant-libvirt plugin..."
@@ -215,51 +212,8 @@ jobs:
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" $PACKER_TEMPLATE
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
-          export PACKER_LOG=1
+          export PACKER_LOG=0
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" $PACKER_TEMPLATE
-
-      - name: Post-mortem debug (VirtualBox only)
-        if: failure()
-        run: |
-          echo "--- Build failed. Running post-mortem debug ---"
-          if [ "${{ matrix.provider }}" != "virtualbox" ]; then
-            echo "VirtualBox provider not used"
-            exit 0
-          fi
-          
-          echo "Listing VirtualBox VMs:"
-          vboxmanage list vms
-          
-          echo "Listing Host-Only Interfaces:"
-          vboxmanage list hostonlyifs
-          
-          echo "Listing Runner IP Addresses:"
-          ip a
-
-          echo "Attempting to find VM log..."
-          VM_NAME=$(vboxmanage list runningvms | awk -F'"' '{print $2}' | head -n 1)
-          
-          if [ -z "$VM_NAME" ]; then
-            VM_NAME=$(vboxmanage list vms | awk -F'"' '{print $2}' | head -n 1)
-          fi
-
-          if [ -n "$VM_NAME" ]; then
-            echo "Found VM: $VM_NAME"
-            echo "--- Dumping VM Info ---"
-            vboxmanage showvminfo "$VM_NAME"
-            
-            echo "--- Dumping VM Log (VBox.log) ---"
-            LOG_PATH=$(vboxmanage showvminfo "$VM_NAME" --machinereadable | grep "LogFile=" | awk -F'"' '{print $2}')
-            
-            if [ -f "$LOG_PATH" ]; then
-              cat "$LOG_PATH"
-            else
-              echo "VM Log file not found at: $LOG_PATH"
-            fi
-          else
-            echo "Could not determine VM name. No logs to dump."
-          fi
-          echo "--- End of post-mortem debug ---"
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
