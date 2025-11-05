@@ -214,6 +214,7 @@ source "vagrant" "vmware" {
 }
 
 source "vmware-iso" "amd64" {
+  firmware           = "bios"
   guest_os_type      = local.guest_os_type_vmware
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
@@ -230,10 +231,11 @@ source "vmware-iso" "amd64" {
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "vmx" # Required for vagrant post-processor
-  headless           = false
+  headless           = true
 }
 
 source "vmware-iso" "arm64" {
+  firmware           = "efi"
   guest_os_type      = local.guest_os_type_vmware
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
