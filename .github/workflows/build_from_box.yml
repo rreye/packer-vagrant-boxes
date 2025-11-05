@@ -59,7 +59,7 @@ jobs:
       - name: Checks
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
-            sysctl -n kern.hv_support
+            sysctl -n kern.hv_support 2>/dev/null || (sysctl -n machdep.cpu.features 2>/dev/null | grep -qw VMX && echo 1) || ([ -d /System/Library/Frameworks/Hypervisor.framework ] && echo 1) || echo 0
           else 
             lscpu | grep Virtualization
             VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
