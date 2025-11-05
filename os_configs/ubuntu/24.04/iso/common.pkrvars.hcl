@@ -10,7 +10,7 @@ http_directory = "http" # Contains user-data and meta-data
 boot_command = [
   "<wait2s>",
   "c<wait>",     # Select boot command prompt
-  "linux /casper/vmlinuz ip=dhcp autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ net.ifnames=0<enter><wait>",
+  "linux /casper/vmlinuz autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/<enter><wait>",
   "<wait2s>",
   "initrd /casper/initrd<enter><wait>",
   "boot<enter><wait>"
