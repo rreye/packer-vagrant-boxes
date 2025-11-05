@@ -1,4 +1,4 @@
-box_version = "13.0"
+box_version = "13.1.0"
 
 # ISO URLs and checksums
 iso_url_amd64      = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.1.0-amd64-netinst.iso"
