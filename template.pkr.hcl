@@ -252,7 +252,6 @@ source "vmware-iso" "arm64" {
   memory             = var.memory
   disk_size          = var.disk_size
   format             = "vmx"
-  firmware           = "efi" # Required for arm64
   headless           = true
 }
 
