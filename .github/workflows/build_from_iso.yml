@@ -150,6 +150,8 @@ jobs:
           fi
           echo "VMware installed."
           vmware --version
+          echo "Compiling VMware modules..."
+          sudo vmware-modconfig --console --install-all
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
