@@ -83,8 +83,8 @@ wipe_partition() {
     echo "Filling ${wipe_mb} MB of free space with zeros in ${mountpoint}..."
         
     if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-      echo "   * GitHub Actions detected → limiting to ${GA_WIPE_LIMIT_MB} MB max"
-      if [ "$free_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
+      echo "   * GitHub Actions detected: limiting to ${GA_WIPE_LIMIT_MB} MB max"
+      if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
         wipe_mb=$GA_WIPE_LIMIT_MB
       fi
     fi
