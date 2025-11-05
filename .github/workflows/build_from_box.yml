@@ -56,9 +56,10 @@ jobs:
           VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
           echo "VCORES=$VCORES"
           if [ "$VCORES" -lt 1 ]; then
-            echo "NEsted virtualization not found!"
+            echo "Nested virtualization not found!"
           fi
-
+          uname -a
+          df -h
       - name: Setup Packer
         uses: hashicorp/setup-packer@main
         with:
@@ -93,7 +94,7 @@ jobs:
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
-            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev
+            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev libguestfs-tools
             echo "Enabling KVM..."
             echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
             sudo udevadm control --reload-rules
@@ -132,7 +133,8 @@ jobs:
           fi
           echo "VirtualBox installed."
           vboxmanage --version
-
+          sudo /usr/sbin/vboxconfig
+  
       - name: Install Dependencies (VMware)
         if: matrix.provider == 'vmware'
         env:
@@ -160,17 +162,26 @@ jobs:
           fi
           echo "VMware installed."
           vmware --version
+          echo "Compiling VMware modules..."
+          sudo vmware-modconfig --console --install-all
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
           set -euo pipefail
-          PACKER_TEMPLATE="${{ github.workspace }}/template.pkr.hcl"
+          sudo mkdir -p /mnt/repo
+          sudo chmod -R 777 /mnt/repo
+          REPO="${{ github.workspace }}"
+          cp -r $REPO/* /mnt/repo
+          REPO_HOME=/mnt/repo
+          PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
+          cd $REPO_HOME
+  
           # parse distro -> os & ver (e.g., ubuntu-24.04 => ubuntu and 24.04)
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION="$(echo "$DISTRO" | cut -d- -f2)"
-          BOX_DIR="${{ github.workspace }}/os_configs/${OS_NAME}/${VERSION}/box"
+          BOX_DIR=$REPO_HOME/os_configs/${OS_NAME}/${VERSION}/box
           
           echo "Using BOX_DIR=${BOX_DIR}"
           if [ ! -d "$BOX_DIR" ]; then
@@ -193,14 +204,13 @@ jobs:
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
-          export VAGRANT_LOG=debug
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" $PACKER_TEMPLATE
 
       - name: Post-mortem debug (VirtualBox only)
         if: failure()
         run: |
           echo "--- Build failed. Running post-mortem debug ---"
-          if [ "${{ matrix.provider }}" != "virtualbox-iso" ]; then
+          if [ "${{ matrix.provider }}" != "virtualbox" ]; then
             echo "VirtualBox provider not used"
             exit 0
           fi

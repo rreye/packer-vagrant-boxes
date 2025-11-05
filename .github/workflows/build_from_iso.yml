@@ -64,8 +64,10 @@ jobs:
           VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
           echo "VCORES=$VCORES"
           if [ "$VCORES" -lt 1 ]; then
-            echo "NEsted virtualization not found!"
+            echo "Nested virtualization not found!"
           fi
+          uname -a
+          df -h
 
       - name: Setup Packer
         uses: hashicorp/setup-packer@main
@@ -83,7 +85,7 @@ jobs:
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
-            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev
+            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev libguestfs-tools
             echo "Enabling KVM..."
             echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
             sudo udevadm control --reload-rules
@@ -148,16 +150,25 @@ jobs:
           fi
           echo "VMware installed."
           vmware --version
+          echo "Compiling VMware modules..."
+          sudo vmware-modconfig --console --install-all
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
           set -euo pipefail
-          PACKER_TEMPLATE="${{ github.workspace }}/template.pkr.hcl"
+          sudo mkdir -p /mnt/repo
+          sudo chmod -R 777 /mnt/repo
+          REPO="${{ github.workspace }}"
+          cp -r $REPO/* /mnt/repo
+          REPO_HOME=/mnt/repo
+          PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
+          cd $REPO_HOME
+          
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
-          ISO_DIR="${{ github.workspace }}/os_configs/${OS_NAME}/${VERSION_DIR}/iso"
+          ISO_DIR=$REPO_HOME/os_configs/${OS_NAME}/${VERSION_DIR}/iso
           echo "Using ISO_DIR=${ISO_DIR}"
           
           if [ ! -d "$ISO_DIR" ]; then
