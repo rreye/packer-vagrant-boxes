@@ -111,7 +111,7 @@ jobs:
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
             sudo mkdir /mnt/images
             sudo chmod 777 /mnt/images
-            sudo ln - s /var/lib/libvirt/images /mnt/images
+            sudo ln -s /var/lib/libvirt/images /mnt/images
             sudo systemctl restart libvirtd
             sudo systemctl status libvirtd
             echo "Installing vagrant-libvirt plugin..."
