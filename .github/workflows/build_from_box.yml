@@ -193,6 +193,7 @@ jobs:
 
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
+          export VAGRANT_LOG=debug
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" $PACKER_TEMPLATE
 
       - name: Post-mortem debug (VirtualBox only)
@@ -201,7 +202,7 @@ jobs:
           echo "--- Build failed. Running post-mortem debug ---"
           if [ "${{ matrix.provider }}" != "virtualbox-iso" ]; then
             echo "VirtualBox provider not used"
-            exit 1
+            exit 0
           fi
           
           echo "Listing VirtualBox VMs:"
