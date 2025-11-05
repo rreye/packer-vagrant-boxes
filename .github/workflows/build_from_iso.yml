@@ -67,7 +67,6 @@ jobs:
             echo "Nested virtualization not found!"
           fi
           uname -a
-          df -h
 
       - name: Setup Packer
         uses: hashicorp/setup-packer@main
@@ -164,7 +163,7 @@ jobs:
           REPO_HOME=/mnt/repo
           PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
           cd $REPO_HOME
-          
+          df -h 
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
@@ -208,50 +207,8 @@ jobs:
           echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
           export PACKER_LOG=1
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ matrix.provider }}.${{ matrix.architecture }}" $PACKER_TEMPLATE
-
-      - name: Post-mortem debug (VirtualBox only)
-        if: failure()
-        run: |
-          echo "--- Build failed. Running post-mortem debug ---"
-          if [ "${{ matrix.provider }}" != "virtualbox-iso" ]; then
-            echo "VirtualBox provider not used"
-            exit 1
-          fi
+          df -h
           
-          echo "Listing VirtualBox VMs:"
-          vboxmanage list vms
-          
-          echo "Listing Host-Only Interfaces:"
-          vboxmanage list hostonlyifs
-          
-          echo "Listing Runner IP Addresses:"
-          ip a
-
-          echo "Attempting to find VM log..."
-          VM_NAME=$(vboxmanage list runningvms | awk -F'"' '{print $2}' | head -n 1)
-          
-          if [ -z "$VM_NAME" ]; then
-            VM_NAME=$(vboxmanage list vms | awk -F'"' '{print $2}' | head -n 1)
-          fi
-
-          if [ -n "$VM_NAME" ]; then
-            echo "Found VM: $VM_NAME"
-            echo "--- Dumping VM Info ---"
-            vboxmanage showvminfo "$VM_NAME"
-            
-            echo "--- Dumping VM Log (VBox.log) ---"
-            LOG_PATH=$(vboxmanage showvminfo "$VM_NAME" --machinereadable | grep "LogFile=" | awk -F'"' '{print $2}')
-            
-            if [ -f "$LOG_PATH" ]; then
-              cat "$LOG_PATH"
-            else
-              echo "VM Log file not found at: $LOG_PATH"
-            fi
-          else
-            echo "Could not determine VM name. No logs to dump."
-          fi
-          echo "--- End of post-mortem debug ---"
-      
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -260,10 +217,3 @@ jobs:
           path: ./${{ inputs.distro }}-*.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
- 
-      - name: Upload packer log (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: packer-log-iso-${{ github.run_number }}
-          path: packer-iso.log
