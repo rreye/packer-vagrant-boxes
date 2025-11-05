@@ -16,7 +16,7 @@ boot_command = [
     "echo \"root:vagrant\" | chpasswd<enter><wait>",
     "mkdir -p /etc/ssh/sshd_config.d<enter>",
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
-    "yes | setup-alpine -e -f answerfile<enter><wait20s>", 	# Run setup with answerfile
+    "yes | setup-alpine -e -f answerfile<enter><wait30s>", 	# Run setup with answerfile
     "reboot<enter>"
 ]
 
