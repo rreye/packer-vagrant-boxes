@@ -50,14 +50,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache Packer
-        uses: actions/cache@v4
+      - name: Checks
+        run: |
+          lscpu | grep Virtualization
+          VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
+          echo "VCORES=$VCORES"
+          if [ "$VCORES" -lt 1 ]; then
+            echo "NEsted virtualization not found!"
+          fi
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
         with:
-          path: |
-            ~/.cache/packer
-          key: packer-${{ runner.os }}-${{ matrix.architecture }}-${{ hashFiles('**/*.pkr.hcl','**/*.pkrvars.hcl') }}
-          restore-keys: |
-            packer-${{ runner.os }}-${{ matrix.architecture }}-
+          version: latest
 
       - name: Install Vagrant
         run: |
@@ -78,18 +83,31 @@ jobs:
       - name: Install Dependencies (QEMU / Libvirt)
         if: matrix.provider == 'libvirt'
         run: |
-          echo "Installing vagrant-libvirt plugin..."
-          vagrant plugin install vagrant-libvirt
-
           # Linux (amd64) requires hypervisor packages
           # macOS (arm64) use preinstalled QEMU 
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing QEMU packages on macOS..."
             brew install qemu
+            echo "Installing vagrant-qemu plugin..."
+            vagrant plugin install vagrant-qemu
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
-            sudo apt-get install -y qemu-system libvirt-daemon-system libvirt-clients ebtables dnsmasq-base
+            sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst bridge-utils qemu-utils libvirt-dev
+            echo "Enabling KVM..."
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+            sudo usermod -aG kvm $USER
+            sudo usermod -aG libvirt $USER
+            sudo chmod o+rw /var/run/libvirt/libvirt-sock
+            sudo systemctl start libvirtd
+            sudo systemctl status libvirtd
+            echo "Installing vagrant-libvirt plugin..."
+            vagrant plugin install vagrant-libvirt
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "QEMU / Libvirt dependencies installed."
 
@@ -108,6 +126,9 @@ jobs:
             echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
             sudo apt-get update
             sudo apt-get install -y virtualbox-7.2
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "VirtualBox installed."
           vboxmanage --version
@@ -133,6 +154,9 @@ jobs:
             chmod +x vmware.bundle
             echo "Installing VMware..."
             sudo ./vmware.bundle --console --required --eulas-agreed
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
           echo "VMware installed."
           vmware --version
