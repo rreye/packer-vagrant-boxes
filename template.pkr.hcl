@@ -132,6 +132,7 @@ source "vagrant" "virtualbox" {
 }
 
 source "virtualbox-iso" "amd64" {
+  firmware           = "bios"
   guest_os_type      = var.guest_os_type_vbox
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
@@ -147,12 +148,21 @@ source "virtualbox-iso" "amd64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
+  hard_drive_interface = "sata"
+  iso_interface      = "sata"
   format             = "ova" # Required for vagrant post-processor
   headless           = true
   guest_additions_mode = "disable"
+  vboxmanage         = [ # ARM specific settings
+    ["modifyvm", "{{.Name}}", "--chipset", "ich9"],
+    ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
+    ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
+    ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+  ]
 }
 
 source "virtualbox-iso" "arm64" {
+  firmware           = "efi"
   guest_os_type      = var.guest_os_type_vbox
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
@@ -165,14 +175,20 @@ source "virtualbox-iso" "arm64" {
   ssh_read_write_timeout = "1m"
   output_directory   = "output-vbox-arm64"
   shutdown_command   = var.shutdown_command
+  cpus               = var.cpus
+  memory             = var.memory
+  disk_size          = var.disk_size
+  hard_drive_interface = "virtio"
+  iso_interface      = "virtio"
   format             = "ova"
   headless           = true
   guest_additions_mode = "disable"
   vboxmanage         = [ # ARM specific settings
-    ["modifyvm", "{{.Name}}", "--firmware", "efi"],
-    ["modifyvm", "{{.Name}}", "--cpu-profile", "host"],
-    ["modifyvm", "{{.Name}}", "--cpus", "${var.cpus}"],
-    ["modifyvm", "{{.Name}}", "--memory", "${var.memory}"]
+    ["modifyvm", "{{.Name}}", "--chipset", "armv8virtual"],
+    ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
+    ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
+    ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+    ["modifyvm", "{{.Name}}", "--graphicscontroller", "qemuramfb"],
   ]
 }
 
@@ -263,6 +279,9 @@ source "qemu" "amd64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = "${var.disk_size}M" # Qemu needs unit
+  disk_compression   = "true"
+  disk_detect_zeroes = "unmap"
+  disk_discard       = "unmap"  
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
   headless           = true
@@ -287,6 +306,9 @@ source "qemu" "arm64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = "${var.disk_size}M"
+  disk_compression   = "true"
+  disk_detect_zeroes = "unmap"
+  disk_discard       = "unmap"  
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
   headless           = true
