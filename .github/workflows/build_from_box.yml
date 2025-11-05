@@ -111,7 +111,7 @@ jobs:
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
             sudo mkdir /mnt/images
             sudo chmod 777 /mnt/images
-            sudo ln - s /mnt/images /var/lib/libvirt/images
+            sudo ln - s /var/lib/libvirt/images /mnt/images
             sudo systemctl restart libvirtd
             sudo systemctl status libvirtd
             echo "Installing vagrant-libvirt plugin..."
@@ -263,9 +263,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
 
-      - name: Upload packer log (always)
+      - name: Cleanup / Final step
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: packer-log-box-${{ github.run_number }}
-          path: packer-box.log
+        run: |
+          df -h
