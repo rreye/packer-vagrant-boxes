@@ -291,6 +291,7 @@ source "qemu" "amd64" {
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
   headless           = true
   use_default_display = false
+  qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
   machine_type       = "q35"
   cpu_model          = "host"
@@ -318,6 +319,7 @@ source "qemu" "arm64" {
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
   headless           = true
   use_default_display = false
+  qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
   machine_type       = "virt"
   cpu_model          = "cortex-a76"
