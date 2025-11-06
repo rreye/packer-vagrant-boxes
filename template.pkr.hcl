@@ -255,7 +255,7 @@ source "vmware-iso" "arm64" {
   headless           = true
 }
 
-# --- QEMU ---
+# --- QEMU / Libvirt ---
 source "vagrant" "libvirt" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
