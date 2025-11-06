@@ -109,8 +109,7 @@ jobs:
             sudo usermod -aG kvm $USER
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
-            sudo systemctl start libvirtd
-            sudo systemctl status libvirtd
+            sudo systemctl restart libvirtd
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
