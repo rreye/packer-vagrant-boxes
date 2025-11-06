@@ -1,5 +1,8 @@
 name: Build Vagrant Boxes (from ISO)
 
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 on:
   # Allows this workflow to be run manually from the "Actions" tab
   workflow_dispatch:
@@ -38,21 +41,16 @@ on:
           - virtualbox-iso
           - vmware-iso
           - qemu
-          - all
 
 jobs:
   build:
-    name: Build (${{ matrix.provider }} on ${{ inputs.distro }} [${{ matrix.architecture }}])
+    name: Build (${{ inputs.provider }} on ${{ inputs.distro }} [${{ inputs.architecture }}])
     # GitHub runner
-    runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
+    runs-on: "${{ inputs.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
     strategy:
       # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
       fail-fast: false
-      # Create parallel jobs based on your 'provider' choice
-      matrix:
-        provider: ${{ fromJSON(inputs.provider == 'all' && '["virtualbox-iso", "vmware-iso", "qemu"]' || format('["{0}"]', inputs.provider)) }}
-        architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
       - name: Checkout code
@@ -60,21 +58,36 @@ jobs:
 
       - name: Checks
         run: |
-          lscpu | grep Virtualization
-          VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
-          echo "VCORES=$VCORES"
-          if [ "$VCORES" -lt 1 ]; then
-            echo "Nested virtualization not found!"
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            sysctl -n kern.hv_support 2>/dev/null || (sysctl -n machdep.cpu.features 2>/dev/null | grep -qw VMX && echo 1) || ([ -d /System/Library/Frameworks/Hypervisor.framework ] && echo 1) || echo 0
+          elif [ "$RUNNER_OS" == "Linux" ]; then 
+            lscpu | grep Virtualization
+            VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
+            echo "VCORES=$VCORES"
+            if [ "$VCORES" -lt 1 ]; then
+              echo "Nested virtualization not found!"
+            fi
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
+          
           uname -a
 
-      - name: Setup Packer
-        uses: hashicorp/setup-packer@main
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        if: inputs.architecture == 'amd64'
         with:
-          version: latest
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
 
       - name: Install Dependencies (QEMU)
-        if: matrix.provider == 'qemu'
+        if: inputs.provider == 'qemu'
         run: |
           # Linux (amd64) requires hypervisor packages
           # macOS (arm64) use preinstalled QEMU 
@@ -101,7 +114,7 @@ jobs:
           echo "QEMU dependencies installed."
 
       - name: Install Dependencies (VirtualBox)
-        if: matrix.provider == 'virtualbox-iso'
+        if: inputs.provider == 'virtualbox-iso'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing VirtualBox on macOS (arm64)..."
@@ -123,7 +136,7 @@ jobs:
           vboxmanage --version
 
       - name: Install Dependencies (VMware)
-        if: matrix.provider == 'vmware-iso'
+        if: inputs.provider == 'vmware-iso'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
           VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
@@ -155,15 +168,11 @@ jobs:
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
-          set -euo pipefail
-          sudo mkdir -p /mnt/repo
-          sudo chmod -R 777 /mnt/repo
-          REPO="${{ github.workspace }}"
-          cp -r $REPO/* /mnt/repo
-          REPO_HOME=/mnt/repo
+          REPO_HOME="${{ github.workspace }}"
           PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
+          echo $REPO_HOME >> $GITHUB_ENV
           cd $REPO_HOME
-          df -h 
+          
           DISTRO="${{ inputs.distro }}"
           OS_NAME="$(echo "$DISTRO" | cut -d- -f1)"
           VERSION_DIR="$(echo "$DISTRO" | cut -d- -f2)"
@@ -177,6 +186,7 @@ jobs:
           fi
 
           cd "${ISO_DIR}"
+          echo "WORKDIR=$ISO_DIR" >> $GITHUB_ENV
           
           if [ -z "${{ inputs.iso_version }}" ]; then
             echo "No iso_version provided, selecting latest..."
@@ -197,23 +207,28 @@ jobs:
             ls -la || true
             exit 1
           fi
-          
+
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
 
           echo "Validating Packer template..."
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" $PACKER_TEMPLATE
 
-          echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
-          export PACKER_LOG=1
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ matrix.provider }}.${{ matrix.architecture }}" $PACKER_TEMPLATE
           df -h
+          echo "Building box for: ${{ inputs.provider }} on ${{ inputs.architecture }}"
+          PACKER_LOG=0
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ inputs.provider }}.${{ inputs.architecture }}" $PACKER_TEMPLATE
           
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.distro }}-${{ inputs.architecture }}--${{ inputs.iso_version }}_${{ matrix.provider }}.box
-          path: ./${{ inputs.distro }}-*.box
+          name: ${{ inputs.distro }}-${{ inputs.architecture }}--${{ inputs.iso_version }}_${{ inputs.provider }}.box
+          path: ${WORDDIR}/${{ inputs.distro }}-*.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
+
+      - name: Final step
+        if: always()
+        run: |
+          df -h
