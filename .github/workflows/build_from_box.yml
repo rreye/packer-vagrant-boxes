@@ -147,13 +147,10 @@ jobs:
           # Linux (amd64) requires hypervisor packages
           # macOS (arm64) use preinstalled QEMU 
           if [ "$RUNNER_OS" == "macOS" ]; then
-            echo "Installing QEMU packages on macOS..."
+            echo "Installing QEMU/Libvirt packages on macOS..."
             brew install qemu
             brew install libvirt
-            brew services restart libvirt
-            
-            echo "Installing vagrant-libvirt and vagrant-qemu plugins..."
-            vagrant plugin install vagrant-libvirt vagrant-qemu
+            brew services restart libvirt            
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
@@ -165,15 +162,14 @@ jobs:
             sudo usermod -aG kvm $USER
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
-            sudo systemctl restart libvirtd
-            
-            echo "Installing vagrant-libvirt and vagrant-qemu plugins..."
-            vagrant plugin install vagrant-libvirt vagrant-qemu
+            sudo systemctl restart libvirtd            
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
           echo "QEMU / Libvirt dependencies installed."
+          echo "Installing vagrant-libvirt and vagrant-qemu plugins..."
+          vagrant plugin install vagrant-libvirt vagrant-qemu
 
       - name: Install Dependencies (VirtualBox)
         if: inputs.provider == 'virtualbox'
