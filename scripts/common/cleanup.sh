@@ -58,7 +58,7 @@ fi
 
 echo "==> Zeroing free space to shrink box..."
 RESERVE_MB=10
-GA_WIPE_LIMIT_MB=2048
+GA_WIPE_LIMIT_MB=10240
 PARTITIONS=$(
   lsblk -lnpo MOUNTPOINT,FSTYPE |
   awk '$1 != "" && $2 ~ /ext[234]|xfs|btrfs|vfat|f2fs/ {print $1}' |
@@ -80,18 +80,15 @@ wipe_partition() {
     fi
 
     local wipe_mb=$((available - RESERVE_MB))
-    echo "Filling ${wipe_mb} MB of free space with zeros in ${mountpoint}..."
-        
-    if [ "${GITHUB_ACTIONS}" = "true" ]; then
-      echo "   * GitHub Actions detected: limiting to ${GA_WIPE_LIMIT_MB} MB max"
-      if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
-        wipe_mb=$GA_WIPE_LIMIT_MB
-      fi
+    echo "${wipe_mb} MB of free space ${mountpoint}"        
+    echo " Zeroing will be limited to ${GA_WIPE_LIMIT_MB} MB"
+    if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
+      wipe_mb=$GA_WIPE_LIMIT_MB
     fi
     
     local outfile="${mountpoint%/}/whitespace"
     [ "$mountpoint" = "/" ] && outfile="/whitespace"
-    echo "Filling ${wipe_mb} MB..."
+    echo "Filling ${wipe_mb} MB of free space with zeros in ${mountpoint}..."
     dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
     rm -f "$outfile"
     sync
