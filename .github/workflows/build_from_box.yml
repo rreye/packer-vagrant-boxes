@@ -48,6 +48,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        if: inputs.architecture == 'amd64'
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
       - name: Checks
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
@@ -65,19 +77,11 @@ jobs:
           fi
           
           uname -a
-
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        if: inputs.architecture == 'amd64'
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
-
+          cat /etc/fstab
+          lsblk
+          ls $HOME
+          du -h $HOME
+  
       - name: Install Vagrant
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
