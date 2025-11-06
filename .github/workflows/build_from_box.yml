@@ -79,9 +79,6 @@ jobs:
           uname -a
           cat /etc/fstab
           lsblk
-          ls $HOME
-          du -h $HOME
-          quota || true
 
       - name: Install Vagrant
         run: |
