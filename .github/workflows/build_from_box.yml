@@ -260,6 +260,7 @@ jobs:
 
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
+        id: build
         run: |
           REPO_HOME="${{ github.workspace }}"
           PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
@@ -280,8 +281,8 @@ jobs:
           fi
 
           cd "${BOX_DIR}"
-          echo "WORKDIR=${BOX_DIR}" >> "$GITHUB_ENV"
-          echo "Written $GITHUB_ENV: WORKDIR=${BOX_DIR}"
+          echo "output_dir=${BOX_DIR}" >> "$GITHUB_OUTPUT"
+          echo "Written output_dir: ${GITHUB_OUTPUT}"
           
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
@@ -303,7 +304,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.distro }}-${{ inputs.architecture }}_${{ inputs.provider }}.box
-          path: ${WORKDIR}/output-*/package.box
+          path: ${{ steps.build.outputs.output_dir }}/output-*/package.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
 
