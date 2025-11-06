@@ -33,21 +33,16 @@ on:
           - virtualbox
           - vmware
           - libvirt
-          - all
 
 jobs:
   build:
-    name: Build (${{ matrix.provider }} on ${{ inputs.distro }} [${{ matrix.architecture }}])
+    name: Build (${{ inputs.provider }} on ${{ inputs.distro }} [${{ inputs.architecture }}])
     # GitHub runner
-    runs-on: "${{ matrix.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
+    runs-on: "${{ inputs.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
     strategy:
       # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
       fail-fast: false
-      # Create parallel jobs based on your 'provider' choice
-      matrix:
-        provider: ${{ fromJSON(inputs.provider == 'all' && '["virtualbox", "vmware", "libvirt"]' || format('["{0}"]', inputs.provider)) }}
-        architecture: ${{ fromJSON(format('["{0}"]', inputs.architecture)) }}
 
     steps:
       - name: Checkout code
@@ -57,18 +52,23 @@ jobs:
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             sysctl -n kern.hv_support 2>/dev/null || (sysctl -n machdep.cpu.features 2>/dev/null | grep -qw VMX && echo 1) || ([ -d /System/Library/Frameworks/Hypervisor.framework ] && echo 1) || echo 0
-          else 
+          elif [ "$RUNNER_OS" == "Linux" ]; then 
             lscpu | grep Virtualization
             VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
             echo "VCORES=$VCORES"
             if [ "$VCORES" -lt 1 ]; then
               echo "Nested virtualization not found!"
             fi
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
           fi
+          
           uname -a
 
-      - name: Free Disk Space
+      - name: Free disk space
         uses: jlumbroso/free-disk-space@main
+        if: inputs.architecture == 'amd64'
         with:
           tool-cache: false
           android: true
@@ -76,7 +76,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
+          swap-storage: false
 
       - name: Install Vagrant
         run: |
@@ -95,7 +95,7 @@ jobs:
           vagrant --version
 
       - name: Install Dependencies (QEMU / Libvirt)
-        if: matrix.provider == 'libvirt'
+        if: inputs.provider == 'libvirt'
         run: |
           # Linux (amd64) requires hypervisor packages
           # macOS (arm64) use preinstalled QEMU 
@@ -126,7 +126,7 @@ jobs:
           echo "QEMU / Libvirt dependencies installed."
 
       - name: Install Dependencies (VirtualBox)
-        if: matrix.provider == 'virtualbox'
+        if: inputs.provider == 'virtualbox'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing VirtualBox on macOS (arm64)..."
@@ -148,7 +148,7 @@ jobs:
           vboxmanage --version
   
       - name: Install Dependencies (VMware)
-        if: matrix.provider == 'vmware'
+        if: inputs.provider == 'vmware'
         env:
           VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
           VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
@@ -180,9 +180,9 @@ jobs:
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
-          set -euo pipefail
           REPO_HOME="${{ github.workspace }}"
           PACKER_TEMPLATE=$REPO_HOME/template.pkr.hcl
+          echo $REPO_HOME >> $GITHUB_ENV
           cd $REPO_HOME
           
           # parse distro -> os & ver (e.g., ubuntu-24.04 => ubuntu and 24.04)
@@ -198,8 +198,9 @@ jobs:
             exit 1
           fi
 
-          df -h
-          cd "$BOX_DIR"
+          cd "${BOX_DIR}"
+          echo "WORKDIR=$BOX_DIR" >> $GITHUB_ENV
+          
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
 
@@ -211,20 +212,21 @@ jobs:
           fi
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" $PACKER_TEMPLATE
 
-          echo "Building box for: ${{ matrix.provider }} on ${{ inputs.architecture }}"
-          export PACKER_LOG=0
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ matrix.provider }}" $PACKER_TEMPLATE
+          df -h
+          echo "Building box for: ${{ inputs.provider }} on ${{ inputs.architecture }}"
+          PACKER_LOG=0
+          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ inputs.provider }}" $PACKER_TEMPLATE
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.distro }}-${{ inputs.architecture }}_${{ matrix.provider }}.box
-          path: ./output-*/package.box
+          name: ${{ inputs.distro }}-${{ inputs.architecture }}_${{ inputs.provider }}.box
+          path: ${WORDDIR}/output-*/package.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
 
-      - name: Cleanup / Final step
+      - name: Final step
         if: always()
         run: |
           df -h
