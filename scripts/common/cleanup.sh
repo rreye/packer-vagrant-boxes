@@ -80,15 +80,15 @@ wipe_partition() {
     fi
 
     local wipe_mb=$((available - RESERVE_MB))
-    echo "${wipe_mb} MB of free space ${mountpoint}"        
-    echo " Zeroing will be limited to ${GA_WIPE_LIMIT_MB} MB"
+    echo "${wipe_mb} MB of free space in ${mountpoint}"        
+    echo "Zeroing will be limited to ${GA_WIPE_LIMIT_MB} MB"
     if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
       wipe_mb=$GA_WIPE_LIMIT_MB
     fi
     
     local outfile="${mountpoint%/}/whitespace"
     [ "$mountpoint" = "/" ] && outfile="/whitespace"
-    echo "Filling ${wipe_mb} MB of free space with zeros in ${mountpoint}..."
+    echo "Filling ${wipe_mb} MB with zeros in ${mountpoint}..."
     dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
     rm -f "$outfile"
     sync
