@@ -159,7 +159,7 @@ source "virtualbox-iso" "amd64" {
   format             = "ova" # Required for vagrant post-processor
   headless           = true
   guest_additions_mode = "disable"
-  vboxmanage         = [ # ARM specific settings
+  vboxmanage         = [ # AMD64 specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "ich9"],
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
