@@ -68,12 +68,29 @@ jobs:
           docker-images: true
           swap-storage: false
 
-      - name: Checks
+      - name: Get info
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "=== CPU ==="
+            echo " Cores: $(sysctl -n hw.ncpu)"
+            echo " Type:  $(sysctl -n machdep.cpu.brand_string)"
+            echo ""
+            echo "=== MEMORY ==="
+            total_mem_bytes=$(sysctl -n hw.memsize)
+            echo " RAM:   $((total_mem_bytes / 1024 / 1024)) MB"
+            echo "Nested virtualization:"
             sysctl -n kern.hv_support 2>/dev/null || (sysctl -n machdep.cpu.features 2>/dev/null | grep -qw VMX && echo 1) || ([ -d /System/Library/Frameworks/Hypervisor.framework ] && echo 1) || echo 0
           elif [ "$RUNNER_OS" == "Linux" ]; then 
+            echo "=== CPU ==="
+            echo " Cores: $(lscpu | grep '^CPU(s):' | awk '{print $2}')"
+            echo " Type:  $(lscpu | grep 'Model name:' | sed 's/Model name:[ \t]*//')"
+            echo ""
+            echo "=== MEMORY ==="
+            total_mem=$(free -m | awk '/^Mem:/ {print $2}')
+            echo " RAM:   ${total_mem} MB"
+            echo "Nested virtualization:"
             lscpu | grep Virtualization
+            lscpu | grep Hypervisor
             VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
             echo "VCORES=$VCORES"
             if [ "$VCORES" -lt 1 ]; then
