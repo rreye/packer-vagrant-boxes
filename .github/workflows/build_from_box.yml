@@ -223,10 +223,6 @@ jobs:
           echo "Compiling VMware modules..."
           sudo vmware-modconfig --console --install-all
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
         if: inputs.architecture == 'amd64'
