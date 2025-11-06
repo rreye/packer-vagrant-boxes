@@ -149,7 +149,10 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing QEMU packages on macOS..."
             brew install qemu
-            echo "Installing vagrant-qemu plugin..."
+            brew install libvirt
+            brew services restart libvirt
+            
+            echo "Installing vagrant-libvirt and vagrant-qemu plugins..."
             vagrant plugin install vagrant-libvirt vagrant-qemu
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
@@ -163,7 +166,8 @@ jobs:
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
             sudo systemctl restart libvirtd
-            echo "Installing vagrant-libvirt plugin..."
+            
+            echo "Installing vagrant-libvirt and vagrant-qemu plugins..."
             vagrant plugin install vagrant-libvirt vagrant-qemu
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
