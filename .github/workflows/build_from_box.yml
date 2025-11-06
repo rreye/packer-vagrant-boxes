@@ -286,8 +286,8 @@ jobs:
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" $PACKER_TEMPLATE
 
           echo "Building box for: ${{ inputs.provider }} on ${{ inputs.architecture }}"
-          PACKER_LOG=0
-          packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ inputs.provider }}" $PACKER_TEMPLATE
+          export VAGRANT_DETECTED_OS=cygwin
+          PACKER_LOG=1 packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ inputs.provider }}" $PACKER_TEMPLATE
 
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
