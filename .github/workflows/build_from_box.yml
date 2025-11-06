@@ -267,11 +267,11 @@ jobs:
             exit 1
           fi
 
-          cd "${ISO_DIR}"
-          printf '%q\n' "$ISO_DIR"
+          cd "${BOX_DIR}"
+          printf '%q\n' "$BOX_DIR"
           {
             echo "WORKDIR<<EOF"
-            echo "${ISO_DIR}"
+            echo "${BOX_DIR}"
             echo "EOF"
           } >> "$GITHUB_ENV"
           echo "WORKDIR=${WORKDIR}"
