@@ -243,9 +243,9 @@ jobs:
             sudo apt-get autoclean
             sudo rm -rf /var/lib/apt/lists/*
             sudo rm -rf /tmp/* /var/tmp/*
-            df -h
           fi
-          
+          df -h
+
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
