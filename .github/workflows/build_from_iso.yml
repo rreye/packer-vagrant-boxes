@@ -139,21 +139,21 @@ jobs:
       - name: Install Dependencies (VMware)
         if: inputs.provider == 'vmware-iso'
         env:
-          VMWARE_URL_ARM: ${{ secrets.VMWARE_FUSION_URL }}
-          VMWARE_URL_AMD: ${{ secrets.VMWARE_WORKSTATION_URL }}
+          VMWARE_URL_ARM64: ${{ secrets.VMWARE_FUSION_URL }}
+          VMWARE_URL_AMD64: ${{ secrets.VMWARE_WORKSTATION_URL }}
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
-            if [ -z "$VMWARE_URL_ARM" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
+            if [ -z "$VMWARE_URL_ARM64" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Fusion (arm64)..."
-            curl -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM"
+            curl -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
             echo "Installing VMware..."
             hdiutil attach VMware-Fusion.dmg
             sudo "/Volumes/VMware Fusion/Install VMware Fusion.app/Contents/MacOS/applet" -silent -EULAS_AGREED=1
             hdiutil detach "/Volumes/VMware Fusion"
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            if [ -z "$VMWARE_URL_AMD" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
+            if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
-            curl -L -o vmware.bundle "$VMWARE_URL_AMD"
+            curl -L -o vmware.bundle "$VMWARE_URL_AMD64"
             chmod +x vmware.bundle
             echo "Installing VMware..."
             sudo ./vmware.bundle --console --required --eulas-agreed
