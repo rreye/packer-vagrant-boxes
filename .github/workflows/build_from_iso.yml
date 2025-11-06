@@ -87,8 +87,6 @@ jobs:
           uname -a
           cat /etc/fstab
           lsblk
-          ls $HOME
-          du -h $HOME
 
       - name: Install Dependencies (QEMU)
         if: inputs.provider == 'qemu'
