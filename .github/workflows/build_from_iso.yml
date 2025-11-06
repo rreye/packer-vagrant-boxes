@@ -265,13 +265,8 @@ jobs:
           fi
 
           cd "${ISO_DIR}"
-          printf '%q\n' "$ISO_DIR"
-          {
-            echo "WORKDIR<<EOF"
-            echo "${ISO_DIR}"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-          echo "WORKDIR=${WORKDIR}"
+          echo "WORKDIR=${ISO_DIR}" >> "$GITHUB_ENV"
+          echo "Written $GITHUB_ENV: WORKDIR=${ISO_DIR}"
           
           if [ -z "${{ inputs.iso_version }}" ]; then
             echo "No iso_version provided, selecting latest..."
