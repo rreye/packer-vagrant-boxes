@@ -51,7 +51,11 @@ jobs:
     strategy:
       # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
       fail-fast: false
-
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Get info
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
