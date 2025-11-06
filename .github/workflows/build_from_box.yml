@@ -81,7 +81,8 @@ jobs:
           lsblk
           ls $HOME
           du -h $HOME
-  
+          quota || true
+
       - name: Install Vagrant
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
