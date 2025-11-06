@@ -211,7 +211,12 @@ jobs:
           fi
 
           cd "${BOX_DIR}"
-          echo "WORKDIR=$BOX_DIR" >> $GITHUB_ENV
+          {
+            echo "WORKDIR<<EOF"
+            echo "$ISO_DIR"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+          echo "WORKDIR=$WORKDIR"
           
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
