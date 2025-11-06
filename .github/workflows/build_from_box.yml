@@ -164,7 +164,7 @@ jobs:
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
             sudo systemctl restart libvirtd
             echo "Installing vagrant-libvirt plugin..."
-            vagrant plugin install vagrant-libvirt
+            vagrant plugin install vagrant-libvirt vagrant-qemu
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
