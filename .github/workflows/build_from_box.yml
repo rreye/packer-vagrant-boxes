@@ -37,6 +37,7 @@ on:
 jobs:
   build:
     name: Build (${{ inputs.provider }} on ${{ inputs.distro }} [${{ inputs.architecture }}])
+    environment: vmware
     # GitHub runner
     runs-on: "${{ inputs.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
 
