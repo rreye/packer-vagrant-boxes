@@ -198,7 +198,12 @@ jobs:
           fi
 
           cd "${ISO_DIR}"
-          echo "WORKDIR=$ISO_DIR" >> $GITHUB_ENV
+          {
+            echo "WORKDIR<<EOF"
+            echo "$ISO_DIR"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+          echo "WORKDIR=$WORKDIR"
           
           if [ -z "${{ inputs.iso_version }}" ]; then
             echo "No iso_version provided, selecting latest..."
