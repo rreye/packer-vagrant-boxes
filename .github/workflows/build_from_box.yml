@@ -48,6 +48,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        if: inputs.architecture == 'amd64'
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
       - name: Checks
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
@@ -65,18 +77,8 @@ jobs:
           fi
           
           uname -a
-
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        if: inputs.architecture == 'amd64'
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
+          cat /etc/fstab
+          lsblk
 
       - name: Install Vagrant
         run: |
@@ -116,7 +118,6 @@ jobs:
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
             sudo systemctl restart libvirtd
-            sudo systemctl status libvirtd
             echo "Installing vagrant-libvirt plugin..."
             vagrant plugin install vagrant-libvirt
           else
@@ -177,6 +178,16 @@ jobs:
           echo "Compiling VMware modules..."
           sudo vmware-modconfig --console --install-all
 
+      - name: Cleanup (Linux)
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get autoremove -y
+            sudo apt-get clean -y
+            sudo apt-get autoclean
+            sudo rm -rf /var/lib/apt/lists/*
+            sudo rm -rf /tmp/* /var/tmp/*
+          fi
+          
       # --- BUILD STEP ---
       - name: Validate and Build with Packer
         run: |
