@@ -264,13 +264,14 @@ jobs:
             exit 1
           fi
 
-          cd "${BOX_DIR}"
+          cd "${ISO_DIR}"
+          printf '%q\n' "$ISO_DIR"
           {
             echo "WORKDIR<<EOF"
-            echo "$ISO_DIR"
+            echo "${ISO_DIR}"
             echo "EOF"
           } >> "$GITHUB_ENV"
-          echo "WORKDIR=$WORKDIR"
+          echo "WORKDIR=${WORKDIR}"
           
           echo "Initializing Packer template..."
           packer init $PACKER_TEMPLATE
