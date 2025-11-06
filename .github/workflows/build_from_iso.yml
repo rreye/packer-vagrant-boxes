@@ -236,7 +236,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.distro }}-${{ inputs.architecture }}--${{ inputs.iso_version }}_${{ inputs.provider }}.box
-          path: ${WORDDIR}/${{ inputs.distro }}-*.box
+          path: ${WORKDIR}/${{ inputs.distro }}-*.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
 
