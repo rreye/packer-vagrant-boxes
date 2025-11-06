@@ -150,7 +150,7 @@ jobs:
             echo "Installing QEMU packages on macOS..."
             brew install qemu
             echo "Installing vagrant-qemu plugin..."
-            vagrant plugin install vagrant-qemu
+            vagrant plugin install vagrant-libvirt vagrant-qemu
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
