@@ -69,7 +69,7 @@ jobs:
             echo " RAM:   $((total_mem_bytes / 1024 / 1024)) MB"
             echo "=== DISK ==="
             diskutil list
-            echo "Virtualization support:"
+
             virt_support=0
             virt_type="None"
             if sysctl -n kern.hv_support &>/dev/null && [ "$(sysctl -n kern.hv_support)" -eq 1 ]; then
@@ -82,8 +82,9 @@ jobs:
               virt_support=1
               virt_type="Hypervisor.framework"
             fi
-            echo "Virtualization support: $virt_support"
-            echo "Type: $virt_type"
+            echo "=== Virtualzation ==="
+            echo "Hardware support: $virt_support"
+            echo "Virtualization type: $virt_type"
           elif [ "$RUNNER_OS" == "Linux" ]; then
             uname -a
             echo "=== CPU ==="
@@ -94,7 +95,7 @@ jobs:
             echo " RAM:   ${total_mem} MB"
             echo "=== DISK ==="
             lsblk
-            echo "Virtualization support:"
+            
             if grep -E -q 'vmx' /proc/cpuinfo; then
               virt_hw="VMX (Intel VT-x)"
             elif grep -E -q 'svm' /proc/cpuinfo; then
@@ -114,9 +115,10 @@ jobs:
               virt_flag="Unknown"
             fi
 
+            echo "=== Virtualzation ==="
             echo "Hardware support:  $virt_hw"
+            echo "Virtualization type: $virt_flag"
             echo "Cores with VT-x/AMD-V: $VCORES"
-            echo "Kernel virtualization type: $virt_flag"
             echo "Hypervisor detected: $hypervisor"
 
             if [ "$VCORES" -gt 0 ]; then
@@ -284,7 +286,7 @@ jobs:
           packer validate -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" $PACKER_TEMPLATE
 
           echo "Building box for: ${{ inputs.provider }} on ${{ inputs.architecture }}"
-          PACKER_LOG=0
+          PACKER_LOG=1
           packer build -var="build_arch=${{ inputs.architecture }}" -var-file="common.pkrvars.hcl" -var-file="$VERSION_PKR" -only="${{ inputs.provider }}.${{ inputs.architecture }}" $PACKER_TEMPLATE
           
       # --- ARTIFACT UPLOAD STEP ---

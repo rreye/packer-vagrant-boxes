@@ -62,7 +62,7 @@ jobs:
             echo "=== DISK ==="
             diskutil list
             df -h
-            echo "Virtualization support:"
+
             virt_support=0
             virt_type="None"
             if sysctl -n kern.hv_support &>/dev/null && [ "$(sysctl -n kern.hv_support)" -eq 1 ]; then
@@ -75,8 +75,9 @@ jobs:
               virt_support=1
               virt_type="Hypervisor.framework"
             fi
-            echo "Virtualization support: $virt_support"
-            echo "Type: $virt_type"
+            echo "=== Virtualzation ==="
+            echo "Hardware support: $virt_support"
+            echo "Virtualization type: $virt_type"
           elif [ "$RUNNER_OS" == "Linux" ]; then
             uname -a
             echo "=== CPU ==="
@@ -88,7 +89,7 @@ jobs:
             echo "=== DISK ==="
             lsblk
             df -h
-            echo "Virtualization support:"
+
             if grep -E -q 'vmx' /proc/cpuinfo; then
               virt_hw="VMX (Intel VT-x)"
             elif grep -E -q 'svm' /proc/cpuinfo; then
@@ -107,10 +108,11 @@ jobs:
             if [[ -z "$virt_flag" ]]; then
               virt_flag="Unknown"
             fi
-
+            
+            echo "=== Virtualzation ==="
             echo "Hardware support:  $virt_hw"
+            echo "Virtualization type: $virt_flag"
             echo "Cores with VT-x/AMD-V: $VCORES"
-            echo "Kernel virtualization type: $virt_flag"
             echo "Hypervisor detected: $hypervisor"
 
             if [ "$VCORES" -gt 0 ]; then
