@@ -63,6 +63,7 @@ jobs:
       - name: Get info
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
+            uname -a
             echo "=== CPU ==="
             echo " Cores: $(sysctl -n hw.ncpu)"
             echo " Type:  $(sysctl -n machdep.cpu.brand_string)"
@@ -70,9 +71,25 @@ jobs:
             echo "=== MEMORY ==="
             total_mem_bytes=$(sysctl -n hw.memsize)
             echo " RAM:   $((total_mem_bytes / 1024 / 1024)) MB"
-            echo "Nested virtualization:"
-            sysctl -n kern.hv_support 2>/dev/null || (sysctl -n machdep.cpu.features 2>/dev/null | grep -qw VMX && echo 1) || ([ -d /System/Library/Frameworks/Hypervisor.framework ] && echo 1) || echo 0
-          elif [ "$RUNNER_OS" == "Linux" ]; then 
+            echo "=== DISK ==="
+            diskutil list
+            echo "Virtualization support:"
+            virt_support=0
+            virt_type="None"
+            if sysctl -n kern.hv_support &>/dev/null && [ "$(sysctl -n kern.hv_support)" -eq 1 ]; then
+              virt_support=1
+              virt_type="Hypervisor.framework"
+            elif sysctl -n machdep.cpu.features &>/dev/null && sysctl -n machdep.cpu.features | grep -qw VMX; then
+              virt_support=1
+              virt_type="VMX"
+            elif [ -d /System/Library/Frameworks/Hypervisor.framework ]; then
+              virt_support=1
+              virt_type="Hypervisor.framework"
+            fi
+            echo "Virtualization support: $virt_support"
+            echo "Type: $virt_type"
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            uname -a
             echo "=== CPU ==="
             echo " Cores: $(lscpu | grep '^CPU(s):' | awk '{print $2}')"
             echo " Type:  $(lscpu | grep 'Model name:' | sed 's/Model name:[ \t]*//')"
@@ -80,22 +97,42 @@ jobs:
             echo "=== MEMORY ==="
             total_mem=$(free -m | awk '/^Mem:/ {print $2}')
             echo " RAM:   ${total_mem} MB"
-            echo "Nested virtualization:"
-            lscpu | grep Virtualization
-            lscpu | grep Hypervisor
+            echo "=== DISK ==="
+            lsblk
+            echo "Virtualization support:"
+            if grep -E -q 'vmx' /proc/cpuinfo; then
+              virt_hw="VMX (Intel VT-x)"
+            elif grep -E -q 'svm' /proc/cpuinfo; then
+              virt_hw="SVM (AMD-V)"
+            else
+              virt_hw="No hardware virtualization support"
+            fi
+
             VCORES=$(egrep -c '(vmx|svm)' /proc/cpuinfo)
-            echo "VCORES=$VCORES"
-            if [ "$VCORES" -lt 1 ]; then
-              echo "Nested virtualization not found!"
+            hypervisor=$(lscpu | awk -F: '/Hypervisor vendor/ {gsub(/^[ \t]+/, "", $2); print $2}')
+            if [[ -z "$hypervisor" ]]; then
+              hypervisor="Not running inside VM"
+            fi
+
+            virt_flag=$(lscpu | awk -F: '/Virtualization type/ {gsub(/^[ \t]+/, "", $2); print $2}')
+            if [[ -z "$virt_flag" ]]; then
+              virt_flag="Unknown"
+            fi
+
+            echo "Hardware support:  $virt_hw"
+            echo "Cores with VT-x/AMD-V: $VCORES"
+            echo "Kernel virtualization type: $virt_flag"
+            echo "Hypervisor detected: $hypervisor"
+
+            if [ "$VCORES" -gt 0 ]; then
+              echo "Virtualization available: YES"
+            else
+              echo "Virtualization available: NO"
             fi
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
-          
-          uname -a
-          cat /etc/fstab
-          lsblk
 
       - name: Install Vagrant
         run: |
