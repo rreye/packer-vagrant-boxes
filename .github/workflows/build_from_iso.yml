@@ -210,19 +210,6 @@ jobs:
           echo "Compiling VMware modules..."
           sudo vmware-modconfig --console --install-all
 
-          echo "Installin Vagrant VMware Utility"
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            curl -L -o vmware-utility.dmg https://releases.hashicorp.com/vagrant-vmware-utility/1.0.24/vagrant-vmware-utility_1.0.24_darwin_arm64.dmg
-            sudo launchctl load -w /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
-          else
-            curl -L -o vmware-utility.deb https://releases.hashicorp.com/vagrant-vmware-utility/1.0.24/vagrant-vmware-utility_1.0.24-1_amd64.deb
-            sudo apt-get install -y ./vmware-utility.deb
-            sudo systemctl restart vagrant-vmware-utility
-          fi
-
-          echo "Installing vagrant-vmware-desktop plugin..."
-          vagrant plugin install vagrant-vmware-desktop
-
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
         if: inputs.architecture == 'amd64'
