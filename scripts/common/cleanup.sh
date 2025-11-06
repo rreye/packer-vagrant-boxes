@@ -82,7 +82,7 @@ wipe_partition() {
     local wipe_mb=$((available - RESERVE_MB))
     echo "Filling ${wipe_mb} MB of free space with zeros in ${mountpoint}..."
         
-    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    if [ "${GITHUB_ACTIONS}" = "true" ]; then
       echo "   * GitHub Actions detected: limiting to ${GA_WIPE_LIMIT_MB} MB max"
       if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
         wipe_mb=$GA_WIPE_LIMIT_MB
@@ -95,6 +95,7 @@ wipe_partition() {
     dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
     rm -f "$outfile"
     sync
+    echo "Done!"
 }
 
 # Try automatic SSD trim if available
