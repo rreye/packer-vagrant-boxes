@@ -55,7 +55,6 @@ jobs:
             echo "=== CPU ==="
             echo " Cores: $(sysctl -n hw.ncpu)"
             echo " Type:  $(sysctl -n machdep.cpu.brand_string)"
-            echo ""
             echo "=== MEMORY ==="
             total_mem_bytes=$(sysctl -n hw.memsize)
             echo " RAM:   $((total_mem_bytes / 1024 / 1024)) MB"
@@ -82,7 +81,6 @@ jobs:
             echo "=== CPU ==="
             echo " Cores: $(lscpu | grep '^CPU(s):' | awk '{print $2}')"
             echo " Type:  $(lscpu | grep 'Model name:' | sed 's/Model name:[ \t]*//')"
-            echo ""
             echo "=== MEMORY ==="
             total_mem=$(free -m | awk '/^Mem:/ {print $2}')
             echo " RAM:   ${total_mem} MB"
