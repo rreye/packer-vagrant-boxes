@@ -150,7 +150,8 @@ jobs:
             echo "Installing QEMU/Libvirt packages on macOS..."
             brew install qemu
             brew install libvirt
-            brew services restart libvirt            
+            brew services restart libvirt
+            brew services list
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
