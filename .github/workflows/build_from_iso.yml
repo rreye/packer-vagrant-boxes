@@ -279,7 +279,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.distro }}-${{ inputs.architecture }}--${{ inputs.iso_version }}_${{ inputs.provider }}.box
+          name: ${{ inputs.distro }}-${{ inputs.architecture }}-${{ inputs.iso_version }}-${{ inputs.provider }}.box
           path:  ${{ steps.build.outputs.output_dir }}/${{ inputs.distro }}-*.box
           if-no-files-found: error
           retention-days: 14 # Keep artifact for 14 days (default is 90)
