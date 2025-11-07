@@ -266,8 +266,8 @@ jobs:
             brew install --cask vagrant-vmware-utility
             ls -l /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
             ls -l /opt/vagrant-vmware-desktop/bin/vagrant-vmware-utility
-            echo "xattr"
-            sudo xattr -d com.apple.quarantine /opt/vagrant-vmware-desktop/bin/vagrant-vmware-utility
+            echo "codesign"
+            codesign -vv /opt/vagrant-vmware-desktop/bin/vagrant-vmware-utility
             echo "bootstrap"
             sudo launchctl bootstrap system /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
             echo "enable" 
