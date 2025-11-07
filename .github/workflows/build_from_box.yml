@@ -239,9 +239,9 @@ jobs:
             fi
             
             echo "Copying $(basename "$APP_PATH") to /Applications..."
-            TARGET="/Applications/$(basename "$APP_PATH")"
+            TARGET="/Applications/"
             echo "Copying $APP_PATH -> $TARGET..."
-            sudo ditto "$APP_PATH" "$TARGET"
+            sudo cp -R "$APP_PATH" "$TARGET"
             echo "Copy done."
 
             if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
