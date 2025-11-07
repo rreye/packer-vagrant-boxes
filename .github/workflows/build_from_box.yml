@@ -35,19 +35,34 @@ on:
           - libvirt
           - utm
 
+      runner_env:
+        description: 'Runner (ignored for arm64)'
+        required: false
+        type: choice
+        options:
+          - github
+          - self-hosted
+        default: 'github'
+
 jobs:
   build:
     name: Build (${{ inputs.provider }} on ${{ inputs.distro }} [${{ inputs.architecture }}])
     environment: vmware
-    # GitHub runner
-    runs-on: "${{ inputs.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
+    runs-on: ${{ (inputs.architecture == 'arm64' && 'macos-15') || 
+                 (inputs.architecture == 'amd64' && inputs.runner_env == 'github' && 'ubuntu-24.04') || 
+                 (inputs.architecture == 'amd64' && inputs.runner_env == 'self-hosted' && 'self-hosted') }}
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Get info
+      - name: Check environment execution
         run: |
+          echo "Architecture: ${{ inputs.architecture }}"
+          echo "Runner: ${{ inputs.runner_env }}"
+          echo "---"
+          echo "This job is running in a runner with these labels:"
+          echo "${{ runner.labels }}"
+          echo "OS runner: ${{ runner.os }}"
+          exit 1
+          
           if [ "$RUNNER_OS" == "macOS" ]; then
             uname -a
             echo "=== CPU ==="
@@ -121,6 +136,9 @@ jobs:
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Vagrant
         run: |
@@ -227,7 +245,6 @@ jobs:
 
             echo "Mounted at: $MOUNT_POINT"
             ls -la "$MOUNT_POINT"
-            
             APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1 || true)
             if [ -z "$APP_PATH" ]; then
               echo "No app found at $MOUNT_POINT"
