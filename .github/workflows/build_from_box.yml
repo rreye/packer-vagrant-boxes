@@ -273,6 +273,24 @@ jobs:
           echo "Installing vagrant-vmware-desktop plugin..."
           vagrant plugin install vagrant-vmware-desktop
 
+      - name: Install Dependencies (UTM)
+        if: inputs.provider == 'utm'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "Installing UTM on macOS (arm64)..."
+            brew install --cask utm
+            echo "Installing QEMU"
+            brew install qemu
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
+          fi
+          echo "UTM installed."
+          /Applications/UTM.app/Contents/MacOS/utmctl --version
+          
+          echo "Installing vagrant-qemu plugin..."
+          vagrant plugin install vagrant-qemu
+          
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
         if: inputs.architecture == 'amd64'
@@ -323,7 +341,7 @@ jobs:
 
           echo "Building box for: ${{ inputs.provider }} on ${{ inputs.architecture }}"
           PACKER_LOG=1 packer build -var="build_arch=${{ inputs.architecture }}" -var-file="box.pkrvars.hcl" -only="vagrant.${{ inputs.provider }}" $PACKER_TEMPLATE
-
+          
       # --- ARTIFACT UPLOAD STEP ---
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
