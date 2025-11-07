@@ -153,7 +153,6 @@ jobs:
             brew services restart libvirt
             brew services list
             ls -l /opt/homebrew/var/run/libvirt/
-            ls -l /var/run/libvirt/
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
