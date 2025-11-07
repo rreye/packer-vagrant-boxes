@@ -215,20 +215,12 @@ jobs:
               exit 1
             fi
             
-            echo "Copying $(basename "$APP_PATH") to /Applications..."
-            TARGET="/Applications/$(basename "$APP_PATH")"
+            TARGET="/Applications/"
             echo "Copying $APP_PATH -> $TARGET..."
-            sudo ditto "$APP_PATH" "$TARGET"
-            echo "Copy done."
-
+            sudo cp -R "$APP_PATH" "$TARGET"
+            echo "Copy done."            
             hdiutil detach "$MOUNT_POINT" -quiet
-
-            if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
-              sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" || true
-            fi
-            if [ -x "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" ]; then
-              sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" || true
-            fi
+            echo "VMware installed."
           elif [ "$RUNNER_OS" == "Linux" ]; then
             if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
@@ -236,14 +228,14 @@ jobs:
             chmod +x vmware.bundle
             echo "Installing VMware..."
             sudo ./vmware.bundle --console --required --eulas-agreed
+            echo "VMware installed."
+            vmware --version
+            echo "Compiling VMware modules..."
+            sudo vmware-modconfig --console --install-all
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
-          echo "VMware installed."
-          vmware --version
-          echo "Compiling VMware modules..."
-          sudo vmware-modconfig --console --install-all
 
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
