@@ -59,7 +59,7 @@ jobs:
           echo "Runner: ${{ inputs.runner_env }}"
           echo "OS runner: ${{ runner.os }}"
           echo "---"
-          echo "This job is running in a runner with these labels: "${{ runner.labels }}"
+          echo "This job is running in a runner with these labels: ${{ runner.labels }}"
           echo "---"
 
           if [[ "${{ inputs.architecture }}" == "arm64" && "${{ inputs.runner_env }}" == "self-hosted" ]]; then
