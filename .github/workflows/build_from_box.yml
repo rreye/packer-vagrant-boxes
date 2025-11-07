@@ -213,12 +213,32 @@ jobs:
             if [ -z "$VMWARE_URL_ARM64" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Fusion (arm64)..."
             curl --silent --show-error -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
+            
             echo "Installing VMware..."
-            hdiutil attach VMware-Fusion.dmg -nobrowse -quiet
-            sudo cp -R "/Volumes/VMware Fusion/Install VMware Fusion.app" /Applications/VMware\ Fusion.app
-            hdiutil detach "/Volumes/VMware Fusion" -quiet
-            sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool"
-            sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh"
+            MOUNT_OUTPUT=$(hdiutil attach VMware-Fusion.dmg -nobrowse -quiet)
+            MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep -o '/Volumes/.*')
+            if [ ! -d "$MOUNT_POINT" ]; then
+              echo "VMware Fusion DMG cannot be mounted."
+              exit 1
+            fi
+
+            APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1)
+            if [ -z "$APP_PATH" ]; then
+              echo "No se encontró ningún .app en $MOUNT_POINT"
+              hdiutil detach "$MOUNT_POINT" -quiet || true
+              exit 1
+            fi
+
+            echo "Copying $(basename "$APP_PATH") to /Applications..."
+            sudo cp -R "$APP_PATH" /Applications/
+            hdiutil detach "$MOUNT_POINT" -quiet
+
+            if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
+              sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" || true
+            fi
+            if [ -x "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" ]; then
+              sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" || true
+            fi
           elif [ "$RUNNER_OS" == "Linux" ]; then
             if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
