@@ -268,7 +268,9 @@ jobs:
             ls -l /opt/vagrant-vmware-desktop/bin/vagrant-vmware-utility
             echo "codesign"
             codesign -vv /opt/vagrant-vmware-desktop/bin/vagrant-vmware-utility
-            echo "bootstrap"
+            echo "bootstrap1"
+            sudo launchctl bootstrap system /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist 2>&1 | grep -i "denied\|error"
+            echo "bootstrap2"
             sudo launchctl bootstrap system /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
             echo "enable" 
             sudo launchctl enable system/com.vagrant.vagrant-vmware-utility
