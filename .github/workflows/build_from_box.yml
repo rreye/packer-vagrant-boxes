@@ -221,7 +221,7 @@ jobs:
               echo "VMware Fusion DMG cannot be mounted."
               exit 1
             fi
-
+            echo MOUNT_POINT=$MOUNT_POINT
             APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1)
             if [ -z "$APP_PATH" ]; then
               echo "No se encontró ningún .app en $MOUNT_POINT"
