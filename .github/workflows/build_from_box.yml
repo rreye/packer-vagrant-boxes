@@ -244,10 +244,6 @@ jobs:
             sudo cp -R "$APP_PATH" "$TARGET"
             echo "Copy done."
 
-            if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
-              echo "Initializing VMware Fusion..."
-              sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" || true
-            fi
             if [ -x "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" ]; then
               echo "Running startup script VMware Fusion..."
               sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" || true
