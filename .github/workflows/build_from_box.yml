@@ -262,7 +262,8 @@ jobs:
 
           echo "Installing Vagrant VMware Utility"
           if [ "$RUNNER_OS" == "macOS" ]; then
-            curl -L -o vmware-utility.dmg https://releases.hashicorp.com/vagrant-vmware-utility/1.0.24/vagrant-vmware-utility_1.0.24_darwin_arm64.dmg
+            brew install --cask vagrant-vmware-utility
+            #curl -L -o vmware-utility.dmg https://releases.hashicorp.com/vagrant-vmware-utility/1.0.24/vagrant-vmware-utility_1.0.24_darwin_arm64.dmg
             sudo launchctl load -w /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
           else
             curl -L -o vmware-utility.deb https://releases.hashicorp.com/vagrant-vmware-utility/1.0.24/vagrant-vmware-utility_1.0.24-1_amd64.deb
