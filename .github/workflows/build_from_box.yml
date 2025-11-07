@@ -244,14 +244,16 @@ jobs:
             sudo ditto "$APP_PATH" "$TARGET"
             echo "Copy done."
 
-            hdiutil detach "$MOUNT_POINT" -quiet
-
             if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
+              echo "Initializing VMware Fusion..."
               sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" || true
             fi
             if [ -x "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" ]; then
+              echo "Running startup script VMware Fusion..."
               sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" || true
             fi
+            
+            hdiutil detach "$MOUNT_POINT" -quiet
           elif [ "$RUNNER_OS" == "Linux" ]; then
             if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
