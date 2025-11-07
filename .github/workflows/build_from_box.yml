@@ -152,6 +152,8 @@ jobs:
             brew install libvirt
             brew services restart libvirt
             brew services list
+            ls -l /opt/homebrew/var/run/libvirt/
+            ls -l /var/run/libvirt/
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
@@ -163,7 +165,7 @@ jobs:
             sudo usermod -aG kvm $USER
             sudo usermod -aG libvirt $USER
             sudo chmod o+rw /var/run/libvirt/libvirt-sock
-            sudo systemctl restart libvirtd            
+            sudo systemctl restart libvirtd
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
