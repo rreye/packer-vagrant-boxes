@@ -61,7 +61,12 @@ jobs:
           echo "This job is running in a runner with these labels:"
           echo "${{ runner.labels }}"
           echo "OS runner: ${{ runner.os }}"
-          exit 1
+
+          if [[ "${{ inputs.architecture }}" == "arm64" && "${{ inputs.runner_env }}" == "self-hosted" ]]; then
+            echo "::error title=Not supported!::Architecture 'arm64' on self-hosted runner is not supported yet."
+            echo "Run the workflow again selecting 'github' runner for 'arm64'."
+            exit 1
+          fi
           
           if [ "$RUNNER_OS" == "macOS" ]; then
             uname -a
