@@ -229,7 +229,8 @@ jobs:
               hdiutil detach "$MOUNT_POINT" -quiet || true
               exit 1
             fi
-
+            ls $MOUNT_POINT
+            ls $APP_PATH
             echo "Copying $(basename "$APP_PATH") to /Applications..."
             sudo cp -R "$APP_PATH" /Applications/
             hdiutil detach "$MOUNT_POINT" -quiet
