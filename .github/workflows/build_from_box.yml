@@ -57,10 +57,10 @@ jobs:
         run: |
           echo "Architecture: ${{ inputs.architecture }}"
           echo "Runner: ${{ inputs.runner_env }}"
-          echo "---"
-          echo "This job is running in a runner with these labels:"
-          echo "${{ runner.labels }}"
           echo "OS runner: ${{ runner.os }}"
+          echo "---"
+          echo "This job is running in a runner with these labels: "${{ runner.labels }}"
+          echo "---"
 
           if [[ "${{ inputs.architecture }}" == "arm64" && "${{ inputs.runner_env }}" == "self-hosted" ]]; then
             echo "::error title=Not supported!::Architecture 'arm64' on self-hosted runner is not supported yet."
@@ -141,7 +141,6 @@ jobs:
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
-          exit 1
           
       - name: Checkout code
         uses: actions/checkout@v4
