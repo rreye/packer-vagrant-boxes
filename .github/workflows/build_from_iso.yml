@@ -251,7 +251,7 @@ jobs:
             exit 1
           fi
           echo "UTM installed."
-          /Applications/UTM.app/Contents/MacOS/utmctl --version
+          /Applications/UTM.app/Contents/MacOS/utmctl version
   
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
