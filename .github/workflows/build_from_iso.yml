@@ -237,6 +237,21 @@ jobs:
             exit 1
           fi
 
+      - name: Install Dependencies (UTM)
+        if: inputs.provider == 'utm'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            echo "Installing UTM on macOS (arm64)..."
+            brew install --cask utm
+            echo "Installing QEMU"
+            brew install qemu
+          else
+            echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
+            exit 1
+          fi
+          echo "UTM installed."
+          /Applications/UTM.app/Contents/MacOS/utmctl --version
+  
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
         if: inputs.architecture == 'amd64'
