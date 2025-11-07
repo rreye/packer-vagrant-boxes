@@ -279,8 +279,6 @@ jobs:
             echo "Installing UTM on macOS (arm64)..."
             brew install --cask utm
             sudo ln -sf /Applications/UTM.app/Contents/MacOS/utmctl /usr/local/bin/utmctl
-            echo "Installing QEMU"
-            brew install qemu
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
