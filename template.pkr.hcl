@@ -325,6 +325,21 @@ source "qemu" "arm64" {
   cpu_model          = "cortex-a76"
 }
 
+# --- UTM ---
+source "vagrant" "utm" {
+  source_path  = var.base_box == null ? "dummy" : var.base_box
+  box_version  = var.base_box_version == null ? "0" : var.base_box_version
+  provider     = "utm"
+  template     = "${path.root}/Vagrantfile.template"
+  skip_add     = false
+  add_force    = true
+  communicator = "ssh"
+  ssh_username = var.ssh_password
+  ssh_password = var.ssh_password
+  ssh_timeout  = "20m"
+  ssh_read_write_timeout = "1m"
+}
+
 # --- 4. Build Block (Provisioning) ---
 build {
   # List all possible sources
@@ -339,7 +354,8 @@ build {
     # BOX
     "source.vagrant.virtualbox",
     "source.vagrant.vmware",
-    "source.vagrant.libvirt"
+    "source.vagrant.libvirt",
+    "source.vagrant.utm"
   ]
 
   # Provisioning steps (common logic)
