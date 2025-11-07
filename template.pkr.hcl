@@ -5,6 +5,7 @@ packer {
     virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
     vmware     = { version = ">= 1.2.0", source = "github.com/hashicorp/vmware" }
     qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
+    utm        = { version = ">= v0.3.4", source  = "github.com/naveenrajm7/utm"}
     vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
   }
 }
