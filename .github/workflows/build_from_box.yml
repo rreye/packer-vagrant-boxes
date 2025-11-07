@@ -238,18 +238,12 @@ jobs:
               exit 1
             fi
             
-            echo "Copying $(basename "$APP_PATH") to /Applications..."
             TARGET="/Applications/"
             echo "Copying $APP_PATH -> $TARGET..."
             sudo cp -R "$APP_PATH" "$TARGET"
-            echo "Copy done."
-
-            if [ -x "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" ]; then
-              echo "Running startup script VMware Fusion..."
-              sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh" || true
-            fi
-            
+            echo "Copy done."            
             hdiutil detach "$MOUNT_POINT" -quiet
+            echo "VMware installed."
           elif [ "$RUNNER_OS" == "Linux" ]; then
             if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
@@ -257,14 +251,14 @@ jobs:
             chmod +x vmware.bundle
             echo "Installing VMware..."
             sudo ./vmware.bundle --console --required --eulas-agreed
+            echo "VMware installed."
+            vmware --version
+            echo "Compiling VMware modules..."
+            sudo vmware-modconfig --console --install-all
           else
             echo "Error: unexpected RUNNER_OS: $RUNNER_OS"
             exit 1
           fi
-          echo "VMware installed."
-          vmware --version
-          echo "Compiling VMware modules..."
-          sudo vmware-modconfig --console --install-all
 
           echo "Installing Vagrant VMware Utility"
           if [ "$RUNNER_OS" == "macOS" ]; then
