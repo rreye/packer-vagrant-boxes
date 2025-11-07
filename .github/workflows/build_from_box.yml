@@ -294,7 +294,7 @@ jobs:
             exit 1
           fi
           echo "UTM installed."
-          utmctl version
+          sudo utmctl version
           
           echo "Installing vagrant_utm plugin..."
           vagrant plugin install vagrant_utm
