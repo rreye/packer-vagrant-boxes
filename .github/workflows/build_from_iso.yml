@@ -32,7 +32,7 @@ on:
           - arm64
 
       # A menu to select the provider. These names MUST match
-      # the start of the 'name' of your 'source' blocks in Packer.
+      # the start of the 'name' of Packer 'source' blocks
       provider:
         description: 'Which provider?'
         required: true
@@ -43,18 +43,33 @@ on:
           - qemu
           - utm
 
+      runner_env:
+        description: 'Runner (ignored for arm64)'
+        required: false
+        type: choice
+        options:
+          - github
+          - self-hosted
+        default: 'github'
+        
 jobs:
   build:
     name: Build (${{ inputs.provider }} on ${{ inputs.distro }} [${{ inputs.architecture }}])
     environment: vmware
     # GitHub runner
     runs-on: "${{ inputs.architecture == 'arm64' && 'macos-15' || 'ubuntu-24.04' }}"
-
-    strategy:
-      # Don't cancel other builds if one fails (e.g., if VBox fails, let QEMU continue)
-      fail-fast: false
     
     steps:
+      - name: Check environment execution
+        run: |
+          echo "Architecture: ${{ inputs.architecture }}"
+          echo "Runner: ${{ inputs.runner_env }}"
+          echo "---"
+          echo "This job is running in a runner with these labels:"
+          echo "${{ runner.labels }}"
+          echo "OS runner: ${{ runner.os }}"
+          exit 1
+          
       - name: Checkout code
         uses: actions/checkout@v4
         
