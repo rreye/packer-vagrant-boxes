@@ -263,7 +263,8 @@ jobs:
           echo "Installing Vagrant VMware Utility"
           if [ "$RUNNER_OS" == "macOS" ]; then
             brew install --cask vagrant-vmware-utility
-            sudo launchctl load -w /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
+            sudo launchctl bootstrap system /Library/LaunchDaemons/com.vagrant.vagrant-vmware-utility.plist
+            sudo launchctl enable system/com.vagrant.vagrant-vmware-utility
           else
             sudo apt-get install -y vagrant-vmware-utility
             sudo systemctl restart vagrant-vmware-utility
