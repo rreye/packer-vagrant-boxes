@@ -215,12 +215,13 @@ jobs:
             curl --silent --show-error -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
             
             echo "Installing VMware..."
-            MOUNT_OUTPUT=$(hdiutil attach VMware-Fusion.dmg -nobrowse -quiet)
-            MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep -o '/Volumes/.*')
+            MOUNT_OUTPUT=$(hdiutil attach VMware-Fusion.dmg -nobrowse)
+            MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep -o '/Volumes/.*' | tail -n 1)
             if [ ! -d "$MOUNT_POINT" ]; then
               echo "VMware Fusion DMG cannot be mounted."
               exit 1
             fi
+            
             echo MOUNT_POINT=$MOUNT_POINT
             APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1)
             if [ -z "$APP_PATH" ]; then
