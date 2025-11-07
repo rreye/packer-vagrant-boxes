@@ -192,8 +192,10 @@ jobs:
             curl --silent --show-error -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
             echo "Installing VMware..."
             hdiutil attach VMware-Fusion.dmg -nobrowse -quiet
-            sudo "/Volumes/VMware Fusion/Install VMware Fusion.app/Contents/MacOS/applet" -silent -EULAS_AGREED=1
+            sudo cp -R "/Volumes/VMware Fusion/Install VMware Fusion.app" /Applications/VMware\ Fusion.app
             hdiutil detach "/Volumes/VMware Fusion" -quiet
+            sudo "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool"
+            sudo "/Applications/VMware Fusion.app/Contents/Library/services/startup.sh"
           elif [ "$RUNNER_OS" == "Linux" ]; then
             if [ -z "$VMWARE_URL_AMD64" ]; then echo "Error: VMWARE_WORKSTATION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Workstation (amd64)..."
