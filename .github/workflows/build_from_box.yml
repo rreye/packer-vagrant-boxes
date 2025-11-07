@@ -184,9 +184,10 @@ jobs:
         if: inputs.provider == 'virtualbox'
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
-            echo "Installing VirtualBox on macOS (arm64)..."
+            echo "Downloading VirtualBox on macOS (arm64)..."
             curl -L -o virtualbox.dmg "https://download.virtualbox.org/virtualbox/7.2.4/VirtualBox-7.2.4-170995-macOSArm64.dmg"
             hdiutil attach virtualbox.dmg -nobrowse -quiet
+            echo "Installing VirtualBox..."
             sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg -target /
             hdiutil detach /Volumes/VirtualBox -quiet
           elif [ "$RUNNER_OS" == "Linux" ]; then
@@ -212,27 +213,37 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             if [ -z "$VMWARE_URL_ARM64" ]; then echo "Error: VMWARE_FUSION_URL secret is not set."; exit 1; fi
             echo "Downloading VMware Fusion (arm64)..."
-            curl --silent --show-error -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
+            DMG_FILE="VMware-Fusion.dmg"
+            curl --silent --show-error -L -o $DMG_FILE "$VMWARE_URL_ARM64"
             
             echo "Installing VMware..."
-            MOUNT_POINT=$(hdiutil attach VMware-Fusion.dmg -nobrowse | awk -F'\t' '/\/Volumes\// {print $NF; exit}')
-            MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep -o '/Volumes/.*' | tail -n 1)
-            if [ ! -d "$MOUNT_POINT" ]; then
-              echo "VMware Fusion DMG cannot be mounted."
+            MOUNT_POINT="/Volumes/VMwareFusion_$$"
+            if ! hdiutil attach "$DMG_FILE" -nobrowse -mountpoint "$MOUNT_POINT"; then
+              echo "Error: $DMG_FILE cannot be mounted"
               exit 1
             fi
+
+            if [ ! -d "$MOUNT_POINT" ]; then
+              echo "MOUNT_POINT=$MOUNT_POINT does not exist after attach"
+              exit 1
+            fi
+
+            echo "Mounted at: $MOUNT_POINT"
+            ls -la "$MOUNT_POINT"
             
-            echo MOUNT_POINT=$MOUNT_POINT
-            APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1)
+            APP_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -type d -name "*.app" | head -n 1 || true)
             if [ -z "$APP_PATH" ]; then
-              echo "No se encontró ningún .app en $MOUNT_POINT"
+              echo "No app found at $MOUNT_POINT"
               hdiutil detach "$MOUNT_POINT" -quiet || true
               exit 1
             fi
-            ls "$MOUNT_POINT"
-            ls "$APP_PATH"
+            
             echo "Copying $(basename "$APP_PATH") to /Applications..."
-            sudo cp -R "$APP_PATH" /Applications/
+            TARGET="/Applications/$(basename "$APP_PATH")"
+            echo "Copying $APP_PATH -> $TARGET..."
+            sudo ditto "$APP_PATH" "$TARGET"
+            echo "Copy done."
+
             hdiutil detach "$MOUNT_POINT" -quiet
 
             if [ -x "/Applications/VMware Fusion.app/Contents/Library/Initialize VMware Fusion.tool" ]; then
