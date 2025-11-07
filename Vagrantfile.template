@@ -39,4 +39,9 @@ Vagrant.configure("2") do |config|
     v.memory = MEM
     v.cpus = CPU
   end
+
+  config.vm.provider "utm" do |v|
+    v.memory = MEM
+    v.cpus = CPU
+  end
 end
