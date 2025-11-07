@@ -41,6 +41,7 @@ on:
           - virtualbox-iso
           - vmware-iso
           - qemu
+          - utm
 
 jobs:
   build:
