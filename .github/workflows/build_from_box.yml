@@ -286,6 +286,7 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             echo "Installing UTM on macOS (arm64)..."
             brew install --cask utm
+            sudo ln -sf /Applications/UTM.app/Contents/MacOS/utmctl /usr/local/bin/utmctl
             echo "Installing QEMU"
             brew install qemu
           else
@@ -293,10 +294,10 @@ jobs:
             exit 1
           fi
           echo "UTM installed."
-          /Applications/UTM.app/Contents/MacOS/utmctl version
+          utmctl version
           
-          echo "Installing vagrant-qemu plugin..."
-          vagrant plugin install vagrant-qemu
+          echo "Installing vagrant_utm plugin..."
+          vagrant plugin install vagrant_utm
           
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
