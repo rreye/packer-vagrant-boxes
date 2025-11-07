@@ -215,7 +215,7 @@ jobs:
             curl --silent --show-error -L -o VMware-Fusion.dmg "$VMWARE_URL_ARM64"
             
             echo "Installing VMware..."
-            MOUNT_OUTPUT=$(hdiutil attach VMware-Fusion.dmg -nobrowse)
+            MOUNT_POINT=$(hdiutil attach VMware-Fusion.dmg -nobrowse | awk -F'\t' '/\/Volumes\// {print $NF; exit}')
             MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep -o '/Volumes/.*' | tail -n 1)
             if [ ! -d "$MOUNT_POINT" ]; then
               echo "VMware Fusion DMG cannot be mounted."
@@ -229,8 +229,8 @@ jobs:
               hdiutil detach "$MOUNT_POINT" -quiet || true
               exit 1
             fi
-            ls $MOUNT_POINT
-            ls $APP_PATH
+            ls "$MOUNT_POINT"
+            ls "$APP_PATH"
             echo "Copying $(basename "$APP_PATH") to /Applications..."
             sudo cp -R "$APP_PATH" /Applications/
             hdiutil detach "$MOUNT_POINT" -quiet
