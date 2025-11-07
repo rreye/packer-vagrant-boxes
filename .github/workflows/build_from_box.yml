@@ -33,6 +33,7 @@ on:
           - virtualbox
           - vmware
           - libvirt
+          - utm
 
 jobs:
   build:
