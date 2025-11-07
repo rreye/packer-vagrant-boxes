@@ -150,9 +150,17 @@ jobs:
             echo "Installing QEMU/Libvirt packages on macOS..."
             brew install qemu
             brew install libvirt
-            brew services restart libvirt
-            brew services list
+            brew services stop libvirt
+            cat << EOF > /opt/homebrew/etc/libvirt/libvirtd-modified.conf
+            unix_sock_ro_perms = "0777"
+            unix_sock_rw_perms = "0770"
+            unix_sock_admin_perms = "0700"
+            unix_sock_dir = "/opt/homebrew/var/run/libvirt"
+
+            EOF
+            sudo /opt/homebrew/opt/libvirt/sbin/libvirtd -f /opt/homebrew/etc/libvirt/libvirtd-modified.conf -d
             ls -l /opt/homebrew/var/run/libvirt/
+            ls -l /opt/homebrew/var/run
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "Installing QEMU/Libvirt packages on Linux..."
             sudo apt-get update
