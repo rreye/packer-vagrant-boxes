@@ -12,6 +12,8 @@ apt-get update
 apt-get upgrade -y
 
 # Install common tools
-apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg
+apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg language-pack-es
+
+locale-gen es_ES.UTF-8
 
 echo "==> Provisioning complete."

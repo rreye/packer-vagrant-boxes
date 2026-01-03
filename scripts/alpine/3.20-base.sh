@@ -8,7 +8,7 @@ apk update
 apk upgrade
 
 # Install common tools
-apk add --no-cache vim nano git curl wget tree net-tools openssh-server rsync util-linux
+apk add --no-cache vim nano git curl wget tree net-tools openssh-server rsync util-linux musl-locales
 
 # Enable community repository if needed for more packages
 echo "http://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories

@@ -60,9 +60,19 @@ chown -R vagrant: $HOME_DIR/.ssh
 
 # Set vagrant user's shell to bash (if installed)
 if [ -f /bin/bash ]; then
+  echo 'export LC_ALL=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+  echo 'export LANG=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+  echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+
   if command -v chsh > /dev/null 2>&1; then
     chsh -s /bin/bash vagrant
   fi
+fi
+
+if [ -f /etc/alpine-release ]; then
+  echo 'export LC_ALL=es_ES.UTF-8' >> $HOME_DIR/.profile
+  echo 'export LANG=es_ES.UTF-8' >> $HOME_DIR/.profile
+  echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.profile
 fi
 
 echo "==> Vagrant user configuration complete."
