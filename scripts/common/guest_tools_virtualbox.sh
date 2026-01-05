@@ -32,7 +32,12 @@ elif [ -f "/usr/bin/zypper" ]; then
 	zypper refresh -y
 	zypper install -y perl cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
-	echo "==> Alpine detected. Installing using apk"
+	if [ "$ARCHITECTURE" = "aarch64" ]; then
+		echo "==> Alpine ARM64 detected. No Guest virtualbox tools available"
+		exit 0
+	fi
+
+	echo "==> Alpine x86_64 detected. Installing using apk"
 	apk update
 	apk add --no-cache virtualbox-guest-additions
 	rc-service virtualbox-guest-additions start
