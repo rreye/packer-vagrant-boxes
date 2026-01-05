@@ -1,7 +1,8 @@
 box_name    = "ubuntu-24.04"
 
 # Guest OS types
-guest_os_type_vbox         = "Ubuntu_64"
+guest_os_type_vbox_amd64   = "Ubuntu_64"
+guest_os_type_vbox_arm64   = "Ubuntu_arm64"
 guest_os_type_vmware_amd64 = "ubuntu-64"
 guest_os_type_vmware_arm64 = "arm-ubuntu-64"
 

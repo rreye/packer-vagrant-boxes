@@ -97,9 +97,13 @@ variable "disk_size" {
 }
 
 # --- 1. Guest OS type variables (provider specific) ---
-variable "guest_os_type_vbox" {
+variable "guest_os_type_vbox_amd64" {
   type = string
   default = "Other_64"
+}
+variable "guest_os_type_vbox_arm64" {
+  type = string
+  default = "Other_arm64"
 }
 variable "guest_os_type_vmware_amd64" {
   type = string
@@ -140,7 +144,7 @@ source "vagrant" "virtualbox" {
 
 source "virtualbox-iso" "amd64" {
   firmware           = "bios"
-  guest_os_type      = var.guest_os_type_vbox
+  guest_os_type      = var.guest_os_type_vbox_am64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
@@ -160,17 +164,23 @@ source "virtualbox-iso" "amd64" {
   format             = "ova" # Required for vagrant post-processor
   headless           = true
   guest_additions_mode = "disable"
+  gfx_controller     = "vboxsvga"
+  gfx_vram_size      = "16"
   vboxmanage         = [ # AMD64 specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "ich9"],
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+    ["modifyvm", "{{.Name}}", "--mouse", "usb"],
+    ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
+    ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
+    ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
   ]
 }
 
 source "virtualbox-iso" "arm64" {
   firmware           = "efi"
-  guest_os_type      = var.guest_os_type_vbox
+  guest_os_type      = var.guest_os_type_vbox_arm64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
@@ -188,13 +198,19 @@ source "virtualbox-iso" "arm64" {
   hard_drive_interface = "virtio"
   iso_interface      = "virtio"
   format             = "ova"
-  headless           = true
+  headless           = false
   guest_additions_mode = "disable"
+  gfx_controller     = "vboxsvga"
+  gfx_vram_size      = "16"
   vboxmanage         = [ # ARM specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "armv8virtual"],
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+    ["modifyvm", "{{.Name}}", "--mouse", "usb"],
+    ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
+    ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
+    ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
     ["modifyvm", "{{.Name}}", "--graphicscontroller", "qemuramfb"],
   ]
 }

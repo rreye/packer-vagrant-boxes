@@ -1,7 +1,8 @@
 box_name    = "alpine-3.20"
 
 # Guest OS types
-guest_os_type_vbox         = "Linux26_64" # Generic Linux
+guest_os_type_vbox_amd64   = "Linux_64"    # Generic Linux
+guest_os_type_vbox_arm64   = "Linux_arm64" # Generic Linux
 guest_os_type_vmware_amd64 = "other-64"
 guest_os_type_vmware_arm64 = "arm-other-64"
 
@@ -16,7 +17,7 @@ boot_command = [
     "echo \"root:vagrant\" | chpasswd<enter><wait>",
     "mkdir -p /etc/ssh/sshd_config.d<enter>",
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
-    "yes | setup-alpine -e -f answerfile<enter><wait30s>", 	# Run setup with answerfile
+    "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
     "reboot<enter>"
 ]
 

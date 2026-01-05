@@ -1,7 +1,8 @@
 box_name    = "debian-13"
 
 # Guest OS types
-guest_os_type_vbox         = "Debian_64"
+guest_os_type_vbox_amd64   = "Debian_64"
+guest_os_type_vbox_arm64   = "Debian_amr64"
 guest_os_type_vmware_amd64 = "debian13-64"
 guest_os_type_vmware_arm64 = "arm-debian13-64"
 

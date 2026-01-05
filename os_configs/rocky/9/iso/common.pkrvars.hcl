@@ -1,7 +1,8 @@
 box_name    = "rocky-9"
 
 # Guest OS types
-guest_os_type_vbox         = "RedHat_64"
+guest_os_type_vbox_amd64   = "RedHat_64"
+guest_os_type_vbox_arm64.  = "RedHat_arm64"
 guest_os_type_vmware_amd64 = "rhel9-64"
 guest_os_type_vmware_arm64 = "arm-rhel9-64"
 
