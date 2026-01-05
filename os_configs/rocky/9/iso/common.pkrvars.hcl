@@ -2,7 +2,7 @@ box_name    = "rocky-9"
 
 # Guest OS types
 guest_os_type_vbox_amd64   = "RedHat_64"
-guest_os_type_vbox_arm64.  = "RedHat_arm64"
+guest_os_type_vbox_arm64   = "RedHat_arm64"
 guest_os_type_vmware_amd64 = "rhel9-64"
 guest_os_type_vmware_arm64 = "arm-rhel9-64"
 
@@ -16,7 +16,13 @@ boot_command_amd64 = [
     "<enter><wait>" # Start boot
 ]
 
-boot_command_arm64 = boot_command_amd64
+boot_command_arm64 = [
+    "<wait2s><up><wait><tab>", # Interrupt bootloader
+    " inst.text",
+    " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
+    " net.ifnames=0 biosdevname=0", # Consistent network names
+    "<enter><wait>" # Start boot
+]
 
 # Execute command
 execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"

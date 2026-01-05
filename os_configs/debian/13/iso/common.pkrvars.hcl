@@ -14,7 +14,11 @@ boot_command_amd64 = [
   "auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg netcfg/get_hostname={{ .Name }}<enter><wait>"
 ]
 
-boot_command_arm64 = boot_command_amd64
+boot_command_arm64 = [
+  "<wait5s>",
+  "<esc><wait>",
+  "auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg netcfg/get_hostname={{ .Name }}<enter><wait>"
+]
 
 # Execute command
 execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
