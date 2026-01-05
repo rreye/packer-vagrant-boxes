@@ -71,8 +71,8 @@ printf "%s\n" "$PARTITIONS"
 
 wipe_partition() {
     local mountpoint="$1"
-    local available
-    available=$(df --sync -BM -P "$mountpoint" | awk 'END{print $4}' | sed 's/M//')
+    local available=0
+    available=$(df -BM -P "$mountpoint" | awk 'END{print $4}' | sed 's/M//')
 
     if [ "$available" -le "$RESERVE_MB" ]; then
         echo "Skipping ${mountpoint}: not enough free space (${available} MB)"
@@ -80,7 +80,11 @@ wipe_partition() {
     fi
 
     local wipe_mb=$((available - RESERVE_MB))
-    echo "${wipe_mb} MB of free space in ${mountpoint}"        
+    echo "${wipe_mb} MB of free space in ${mountpoint}"
+    if [ "$wipe_mb" -le 0 ]; then
+        echo "Skipping ${mountpoint}: not enough free space (${wipe_mb} MB)"
+        return
+    fi
     echo "Zeroing will be limited to ${GA_WIPE_LIMIT_MB} MB"
     if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
       wipe_mb=$GA_WIPE_LIMIT_MB
@@ -105,6 +109,7 @@ fi
 printf "%s\n" "$PARTITIONS" | while IFS= read -r PART; do
   [ -z "$PART" ] && continue
   echo "-> Wiping free space in $PART"
+  sync
   wipe_partition "$PART"
 done
 
