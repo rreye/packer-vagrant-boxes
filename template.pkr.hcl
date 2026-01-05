@@ -79,7 +79,11 @@ variable "http_directory" {
   type    = string
   default = null
 }
-variable "boot_command" {
+variable "boot_command_amd64" {
+  type    = list(string)
+  default = null
+}
+variable "boot_command_arm64" {
   type    = list(string)
   default = null
 }
@@ -148,7 +152,7 @@ source "virtualbox-iso" "amd64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -173,6 +177,8 @@ source "virtualbox-iso" "amd64" {
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
     ["modifyvm", "{{.Name}}", "--mouse", "usb"],
     ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
+    ["modifyvm", "{{.Name}}", "--usb-ohci", "off"],
+    ["modifyvm", "{{.Name}}", "--usb-ehci", "off"],
     ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
     ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
   ]
@@ -184,7 +190,7 @@ source "virtualbox-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -209,6 +215,8 @@ source "virtualbox-iso" "arm64" {
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
     ["modifyvm", "{{.Name}}", "--mouse", "usb"],
     ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
+    ["modifyvm", "{{.Name}}", "--usb-ohci", "off"],
+    ["modifyvm", "{{.Name}}", "--usb-ehci", "off"],
     ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
     ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
     ["modifyvm", "{{.Name}}", "--graphicscontroller", "qemuramfb"],
@@ -236,7 +244,7 @@ source "vmware-iso" "amd64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -257,7 +265,7 @@ source "vmware-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -291,7 +299,7 @@ source "qemu" "amd64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -318,7 +326,7 @@ source "qemu" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command       = var.boot_command
+  boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password

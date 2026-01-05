@@ -59,9 +59,8 @@ fi
 mkdir -p /mnt/VBoxGuestAdditions
 mount -o loop,ro /tmp/VBoxGuestAdditions_$VERSION.iso /mnt/VBoxGuestAdditions
 
-if [ ! -f /usr/sbin/vbox-uninstall-guest-additions ]; then
-	sh /mnt/VBoxGuestAdditions/VBoxLinuxAdditions.run uninstall --force
-else
+if [ -f /usr/sbin/vbox-uninstall-guest-additions ]; then
+	echo "Uninstalling..."
 	/usr/sbin/vbox-uninstall-guest-additions
 fi
 

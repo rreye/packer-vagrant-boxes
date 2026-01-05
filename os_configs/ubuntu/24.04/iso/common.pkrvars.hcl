@@ -8,7 +8,7 @@ guest_os_type_vmware_arm64 = "arm-ubuntu-64"
 
 # Autoinstall configuration
 http_directory = "http" # Contains user-data and meta-data
-boot_command = [
+boot_command_amd64 = [
   "<wait2s>",
   "c<wait>",     # Select boot command prompt
   "linux /casper/vmlinuz autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/<enter><wait>",
@@ -16,6 +16,8 @@ boot_command = [
   "initrd /casper/initrd<enter><wait>",
   "boot<enter><wait>"
 ]
+
+boot_command_arm64 = boot_command_amd64
 
 # Execute command
 execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"

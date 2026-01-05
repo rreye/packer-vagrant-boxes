@@ -8,13 +8,15 @@ guest_os_type_vmware_arm64 = "arm-rhel9-64"
 
 # Kickstart configuration
 http_directory = "http"
-boot_command = [
+boot_command_amd64 = [
     "<wait2s><up><wait><tab>", # Interrupt bootloader
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
     "<enter><wait>" # Start boot
 ]
+
+boot_command_arm64 = boot_command_amd64
 
 # Execute command
 execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
