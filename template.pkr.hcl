@@ -493,7 +493,7 @@ build {
   # --- 5. Post-Processing ---
   # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {
-    except = ["vagrant.virtualbox", "vagrant.vmware", "vagrant.libvirt"]
+    except = ["vagrant.virtualbox", "vagrant.vmware", "vagrant.libvirt", "vagrant.utm"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-{{.Provider}}.box"
     compression_level = 9
     keep_input_artifact = false # Delete the intermediate VM files
