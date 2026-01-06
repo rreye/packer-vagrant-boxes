@@ -2,7 +2,7 @@ box_name    = "debian-13"
 
 # Guest OS types
 guest_os_type_vbox_amd64   = "Debian_64"
-guest_os_type_vbox_arm64   = "Debian_amr64"
+guest_os_type_vbox_arm64   = "Debian_arm64"
 guest_os_type_vmware_amd64 = "debian13-64"
 guest_os_type_vmware_arm64 = "arm-debian13-64"
 
@@ -16,8 +16,8 @@ boot_command_amd64 = [
 
 boot_command_arm64 = [
   "<wait5s>",
-  "<esc><wait>",
-  "auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg netcfg/get_hostname={{ .Name }}<enter><wait>"
+"<wait>e<wait><down><down><down><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><right><wait>",
+  "install <wait>auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg netcfg/get_hostname={{ .Name }} netcfg/get_domain=vagrantup.com debian-installer=en_US.UTF-8 locale=en_US.UTF-8 kbd-chooser/method=us keyboard-configuration/xkb-keymap=us debconf/frontend=noninteractive console-setup/ask_detect=false console-keymaps-at/keymap=us fb=false grub-installer/bootdev=default<wait><f10><wait>"
 ]
 
 # Execute command
