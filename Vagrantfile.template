@@ -1,6 +1,7 @@
 CPU=2
 MEM=2048
-VIDEO_VRAM = 16
+VIDEO_VRAM_MB = 16
+VIDEO_VRAM_KB = VIDEO_VRAM_MB * 1024
 
 Vagrant.configure("2") do |config|
   config.vm.define "source", autostart: false do |source|
@@ -25,7 +26,7 @@ Vagrant.configure("2") do |config|
     v.linked_clone = false
     v.gui = false
     v.customize ["modifyvm", :id, "--vrde", "off"]
-    v.customize ["modifyvm", :id, "--vram", VIDEO_VRAM]
+    v.customize ["modifyvm", :id, "--vram", VIDEO_VRAM_MB]
     v.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
   end
 
@@ -33,6 +34,7 @@ Vagrant.configure("2") do |config|
     v.vmx["memsize"] = MEM
     v.vmx["numvcpus"] = CPU
     v.vmx["cpuid.coresPerSocket"] = "1"
+    v.vmx['svga.graphicsMemoryKB'] = VIDEO_VRAM_KB
     v.linked_clone = false
     v.gui = false
     v.allowlist_verified = true
@@ -44,7 +46,7 @@ Vagrant.configure("2") do |config|
     v.memory = MEM
     v.cpus = CPU
     v.cputopology :sockets => '1', :cores => CPU, :threads => '1'
-    v.video_vram = VIDEO_VRAM
+    v.video_vram = VIDEO_VRAM_KB
   end
 
   config.vm.provider "utm" do |v|
