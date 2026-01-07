@@ -1,5 +1,6 @@
 CPU=2
 MEM=2048
+VIDEO_VRAM = 16
 
 Vagrant.configure("2") do |config|
   config.vm.define "source", autostart: false do |source|
@@ -24,7 +25,7 @@ Vagrant.configure("2") do |config|
     v.linked_clone = false
     v.gui = false
     v.customize ["modifyvm", :id, "--vrde", "off"]
-    v.customize ["modifyvm", :id, "--vram", 16]
+    v.customize ["modifyvm", :id, "--vram", VIDEO_VRAM]
     v.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
   end
 
@@ -39,8 +40,11 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider "libvirt" do |v|
+    v.driver = "kvm"
     v.memory = MEM
     v.cpus = CPU
+    v.cputopology :sockets => '1', :cores => CPU, :threads => '1'
+    v.video_vram = VIDEO_VRAM
   end
 
   config.vm.provider "utm" do |v|
