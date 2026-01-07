@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
     v.vmx["memsize"] = MEM
     v.vmx["numvcpus"] = CPU
     v.vmx["cpuid.coresPerSocket"] = "1"
-    v.vmx['svga.graphicsMemoryKB'] = VIDEO_VRAM_KB
+    v.vmx['svga.vramsize'] = VIDEO_VRAM_KB
     v.linked_clone = false
     v.gui = false
     v.allowlist_verified = true
