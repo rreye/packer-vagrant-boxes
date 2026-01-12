@@ -168,7 +168,7 @@ source "virtualbox-iso" "amd64" {
   format             = "ova" # Required for vagrant post-processor
   headless           = false
   guest_additions_mode = "disable"
-  gfx_controller     = "vmsvga"
+  gfx_controller     = "vboxsvga"
   gfx_vram_size      = "32"
   vboxmanage         = [ # AMD64 specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "ich9"],
@@ -206,7 +206,7 @@ source "virtualbox-iso" "arm64" {
   format             = "ova"
   headless           = false
   guest_additions_mode = "disable"
-  gfx_controller     = "vmsvga"
+  gfx_controller     = "vboxsvga"
   gfx_vram_size      = "32"
   vboxmanage         = [ # ARM specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "armv8virtual"],
