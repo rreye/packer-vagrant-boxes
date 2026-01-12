@@ -84,8 +84,9 @@ fi
 echo "removing kernel dev packages and compilers we no longer need"
 if [ -f "/bin/dnf" ]; then
 	dnf remove -y gcc cpp kernel-headers kernel-devel
+	dnf autoremove -y
 elif [ -f "/usr/bin/apt-get" ]; then
-	apt-get remove -y build-essential gcc g++ make libc6-dev dkms linux-headers-"$(uname -r)"
+	apt-get purge -y --auto-remove build-essential gcc g++ make libc6-dev dkms linux-headers-"$(uname -r)"
 elif [ -f "/usr/bin/zypper" ]; then
 	zypper -n rm -u kernel-default-devel gcc make
 fi

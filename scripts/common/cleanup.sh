@@ -57,6 +57,7 @@ if [ -f /root/vagrant/.ash_history ]; then
 fi
 
 echo "==> Zeroing free space to shrink box..."
+sync
 RESERVE_MB=10
 GA_WIPE_LIMIT_MB=15360
 PARTITIONS=$(
