@@ -89,7 +89,7 @@ variable "boot_command_arm64" {
 }
 variable "cpus" {
   type = number
-  default = 2
+  default = 1
 }
 variable "memory" {
   type = number
@@ -168,18 +168,12 @@ source "virtualbox-iso" "amd64" {
   format             = "ova" # Required for vagrant post-processor
   headless           = false
   guest_additions_mode = "disable"
-  gfx_controller     = "vboxsvga"
+  gfx_controller     = "vmsvga"
   gfx_vram_size      = "32"
   vboxmanage         = [ # AMD64 specific settings
-    ["modifyvm", "{{.Name}}", "--chipset", "ich9"],
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
-    ["modifyvm", "{{.Name}}", "--mouse", "usb"],
-    ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
-    ["modifyvm", "{{.Name}}", "--usb-ohci", "off"],
-    ["modifyvm", "{{.Name}}", "--usb-ehci", "off"],
-    ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
     ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
   ]
 }
@@ -206,7 +200,7 @@ source "virtualbox-iso" "arm64" {
   format             = "ova"
   headless           = false
   guest_additions_mode = "disable"
-  gfx_controller     = "vboxsvga"
+  gfx_controller     = "vmsvga"
   gfx_vram_size      = "32"
   vboxmanage         = [ # ARM specific settings
     ["modifyvm", "{{.Name}}", "--chipset", "armv8virtual"],
