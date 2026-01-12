@@ -174,6 +174,7 @@ source "virtualbox-iso" "amd64" {
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+    ["modifyvm", "{{.Name}}", "--vrde", "off"],
     ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
   ]
 }
@@ -207,6 +208,7 @@ source "virtualbox-iso" "arm64" {
     ["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
     ["modifyvm", "{{.Name}}", "--nat-localhostreachable1", "on"],
     ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+    ["modifyvm", "{{.Name}}", "--vrde", "off"],
     ["modifyvm", "{{.Name}}", "--mouse", "usb"],
     ["modifyvm", "{{.Name}}", "--keyboard", "usb"],
     ["modifyvm", "{{.Name}}", "--usb-ohci", "off"],
