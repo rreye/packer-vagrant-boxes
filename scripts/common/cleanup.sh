@@ -58,7 +58,7 @@ fi
 
 echo "==> Zeroing free space to shrink box..."
 RESERVE_MB=10
-GA_WIPE_LIMIT_MB=10240
+GA_WIPE_LIMIT_MB=15360
 PARTITIONS=$(
   lsblk -lnpo MOUNTPOINT,FSTYPE |
   awk '$1 != "" && $2 ~ /ext[234]|xfs|btrfs|vfat|f2fs/ {print $1}' |
