@@ -17,7 +17,14 @@ boot_command_amd64 = [
   "boot<enter><wait>"
 ]
 
-boot_command_arm64 = boot_command_amd64
+boot_command_arm64 = [
+  "<wait2s>",
+  "c<wait>",     # Select boot command prompt
+  "linux /casper/vmlinuz autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/<enter><wait>",
+  "<wait2s>",
+  "initrd /casper/initrd<enter><wait>",
+  "boot<enter><wait>"
+]
 
 # Execute command
 execute_command = "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
