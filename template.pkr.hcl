@@ -148,7 +148,7 @@ source "vagrant" "virtualbox" {
 
 source "virtualbox-iso" "amd64" {
   firmware           = "bios"
-  guest_os_type      = var.guest_os_type_vbox_am64
+  guest_os_type      = var.guest_os_type_vbox_amd64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
@@ -166,7 +166,7 @@ source "virtualbox-iso" "amd64" {
   hard_drive_interface = "sata"
   iso_interface      = "sata"
   format             = "ova" # Required for vagrant post-processor
-  headless           = true
+  headless           = false
   guest_additions_mode = "disable"
   gfx_controller     = "vboxsvga"
   gfx_vram_size      = "16"
