@@ -7,12 +7,21 @@ DISTRO_ID=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 
 set_grub_timeout() {
   FILE="$1"
-  sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" "$FILE" \
-    || echo "GRUB_TIMEOUT=${NEW_TIMEOUT}" >> "$FILE"
-  sed -i "s/^GRUB_RECORDFAIL_TIMEOUT=.*/GRUB_RECORDFAIL_TIMEOUT=0/" "$FILE" \
-    || echo "GRUB_RECORDFAIL_TIMEOUT=0" >> "$FILE"
-  sed -i "s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/" "$FILE" \
-    || echo "GRUB_TIMEOUT_STYLE=menu" >> "$FILE"
+  if grep -q "^GRUB_TIMEOUT=" "$FILE"; then
+    sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" "$FILE"
+  else
+    echo "GRUB_TIMEOUT=${NEW_TIMEOUT}" >> "$FILE"
+  fi
+  if grep -q "^GRUB_RECORDFAIL_TIMEOUT=" "$FILE"; then
+    sed -i "s/^GRUB_RECORDFAIL_TIMEOUT=.*/GRUB_RECORDFAIL_TIMEOUT=0/" "$FILE"
+  else
+    echo "GRUB_RECORDFAIL_TIMEOUT=0" >> "$FILE"
+  fi
+  if grep -q "^GRUB_TIMEOUT_STYLE=" "$FILE"; then
+    sed -i "s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/" "$FILE"
+  else
+    echo "GRUB_TIMEOUT_STYLE=menu" >> "$FILE"
+  fi
 }
 
 generate_grub_cfg_rhel() {
@@ -75,6 +84,7 @@ case "$DISTRO_ID" in
     ;;
 esac
 
+sleep 2
 echo "GRUB timeout set to ${NEW_TIMEOUT}s."
 
 echo "==> GRUB configuration complete."
