@@ -9,6 +9,10 @@ set_grub_timeout() {
   FILE="$1"
   sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" "$FILE" \
     || echo "GRUB_TIMEOUT=${NEW_TIMEOUT}" >> "$FILE"
+  sed -i "s/^GRUB_RECORDFAIL_TIMEOUT=.*/GRUB_RECORDFAIL_TIMEOUT=0/" "$FILE" \
+    || echo "GRUB_RECORDFAIL_TIMEOUT=0" >> "$FILE"
+  sed -i "s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/" "$FILE" \
+    || echo "GRUB_TIMEOUT_STYLE=menu" >> "$FILE"
 }
 
 generate_grub_cfg_rhel() {
