@@ -423,7 +423,7 @@ build {
   # --- Box customization ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = length(var.box_provision_scripts) > 0 ? var.box_provision_scripts : ["${path.root}/scripts/common/noop.sh"]
+    scripts = length(var.box_provision_scripts) > 0 ? [for script_path in var.provision_scripts : "${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
