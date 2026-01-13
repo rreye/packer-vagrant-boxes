@@ -433,8 +433,7 @@ build {
     pause_after = "30s"
     inline = [
       "echo 'Rebooting in background...'",
-      "nohup ${var.reboot_command} &",
-      "sleep 2"
+      "sleep 2 && nohup ${var.reboot_command}"
     ]
     expect_disconnect = true
     timeout         = "30m"
@@ -455,8 +454,7 @@ build {
     pause_after = "30s"
     inline = [
       "echo 'Rebooting in background...'",
-      "nohup ${var.reboot_command} &",
-      "sleep 2"
+      "sleep 2 && nohup ${var.reboot_command}"
     ]
     expect_disconnect = true
     timeout         = "30m"
