@@ -163,8 +163,8 @@ source "virtualbox-iso" "amd64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
-  hard_drive_interface = "sata"
-  iso_interface      = "sata"
+  hard_drive_interface = "virtio"
+  iso_interface      = "virtio"
   format             = "ova" # Required for vagrant post-processor
   headless           = false
   guest_additions_mode = "disable"
