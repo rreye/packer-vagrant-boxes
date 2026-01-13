@@ -2,6 +2,10 @@
 
 echo "==> Running cleanup script..."
 
+if [ -f /etc/sudoers.d/_packer_env ]; then
+  rm -f /etc/sudoers.d/_packer_env
+fi
+
 if [ -f "/usr/bin/dnf" ]; then
 	dnf autoremove -y
 	dnf clean all --enablerepo=\*
@@ -57,7 +61,7 @@ if [ -f /root/vagrant/.ash_history ]; then
 fi
 
 echo "==> Zeroing free space to shrink box..."
-RESERVE_MB=20
+RESERVE_MB=100
 GA_WIPE_LIMIT_MB=32768
 PARTITIONS=$(
   lsblk -lnpo MOUNTPOINT,FSTYPE |
@@ -92,25 +96,20 @@ wipe_partition() {
     
     local outfile="${mountpoint%/}/whitespace"
     [ "$mountpoint" = "/" ] && outfile="/whitespace"
-    echo "Filling ${wipe_mb} MB with zeros in ${mountpoint}..."
-    dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
-    rm -f "$outfile"
+    echo "Filling ${wipe_mb} MB with zeros in ${mountpoint} using ${outfile}..."
+    dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" || echo "dd exit code $? is suppressed";
+    rm "$outfile"
     sync
     sleep 5
     echo "Done!"
 }
-
-# Try automatic SSD trim if available
-if command -v fstrim >/dev/null 2>&1; then
-    echo "### Running fstrim on all mounted partitions..."
-    fstrim -av || true
-fi
 
 # Wipe partitions
 printf "%s\n" "$PARTITIONS" | while IFS= read -r PART; do
   [ -z "$PART" ] && continue
   echo "-> Wiping free space in $PART"
   sync
+  sleep 5
   wipe_partition "$PART"
 done
 
