@@ -4,7 +4,7 @@ echo "==> Running cleanup script..."
 
 if [ -f "/usr/bin/dnf" ]; then
 	dnf autoremove -y
-	dnf clean all
+	dnf clean all --enablerepo=\*
 	rm -rf /var/cache/dnf
 elif [ -f "/usr/bin/apt-get" ]; then
 	apt-get autoremove -y
@@ -57,7 +57,6 @@ if [ -f /root/vagrant/.ash_history ]; then
 fi
 
 echo "==> Zeroing free space to shrink box..."
-sync
 RESERVE_MB=20
 GA_WIPE_LIMIT_MB=32768
 PARTITIONS=$(
@@ -97,6 +96,7 @@ wipe_partition() {
     dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" status=none || true
     rm -f "$outfile"
     sync
+    sleep 5
     echo "Done!"
 }
 
@@ -137,6 +137,8 @@ if [ "x${swapuuid}" != "x" ]; then
 fi
 
 echo "==> Final sync to disk..."
+sync
+sleep 5
 sync
 
 echo "==> Cleanup complete."
