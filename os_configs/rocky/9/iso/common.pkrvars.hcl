@@ -17,11 +17,13 @@ boot_command_amd64 = [
 ]
 
 boot_command_arm64 = [
-    "<wait2s><up><wait><tab>", # Interrupt bootloader
+    "<wait2s><up><wait>", # Interrupt bootloader
+    "e",
+    "<wait><down><down><end><wait>",
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
-    " net.ifnames=0 biosdevname=0", # Consistent network names
-    "<enter><wait>" # Start boot
+    " net.ifnames=0", # Consistent network names
+    "<wait><f10>" # Start boot
 ]
 
 # Execute command
