@@ -12,6 +12,12 @@ apt-get update
 apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg language-pack-es
 
 update-locale LANG=es_ES.UTF-8
+if [ -f /bin/bash ]; then
+    HOME_DIR=/home/vagrant
+    echo 'export LC_ALL=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+    echo 'export LANG=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+    echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+fi
 
 echo "disable systemd apt timers/services"
 systemctl stop apt-daily.timer

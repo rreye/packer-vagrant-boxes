@@ -6,6 +6,8 @@ echo "==> Running provision script (Rocky)..."
 dnf clean all
 dnf install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg langpacks-es
 
+localectl set-locale LANG=es_ES.UTF-8
+
 # Optional: Enable EPEL repository for more packages
 dnf install -y epel-release
 
@@ -14,5 +16,12 @@ dnf -y remove gcc cpp gc kernel-devel kernel-headers glibc-devel elfutils-libelf
 
 echo "remove the install log"
 rm -f /root/anaconda-ks.cfg /root/original-ks.cfg
+
+if [ -f /bin/bash ]; then
+    HOME_DIR=/home/vagrant
+    echo 'export LC_ALL=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+    echo 'export LANG=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+    echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.bashrc
+fi
 
 echo "==> Provisioning complete."
