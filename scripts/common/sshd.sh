@@ -11,10 +11,12 @@ else
   exit 1
 fi
 
-echo "PermitRootLogin yes" > $SSHD_CONFIG
+echo "Include /etc/ssh/sshd_config.d/*.conf" > $SSHD_CONFIG
+echo "PermitRootLogin yes" >> $SSHD_CONFIG
 echo "PasswordAuthentication yes" >> $SSHD_CONFIG
 echo "KbdInteractiveAuthentication yes" >> $SSHD_CONFIG
 echo "UseDNS no" >> $SSHD_CONFIG
+echo "Subsystem		sftp	/usr/lib/openssh/sftp-server" >> $SSHD_CONFIG
 
 if [ -f /etc/alpine-release ]; then
   echo "Alpine detected. Using 'rc-service sshd'."
