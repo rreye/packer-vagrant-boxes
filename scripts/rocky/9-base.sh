@@ -4,7 +4,7 @@ echo "==> Running provision script (Rocky)..."
 
 # Install common tools (some might be installed by Kickstart already)
 dnf clean all
-dnf install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg langpacks-es
+dnf install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg langpacks-es glibc-locale-source
 
 localedef -i es_ES -f UTF-8 es_ES.UTF-8
 localectl set-locale LANG=es_ES.UTF-8
