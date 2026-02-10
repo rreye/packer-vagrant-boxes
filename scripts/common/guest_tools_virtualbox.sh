@@ -2,8 +2,9 @@
 
 echo "==> Running guest virtualbox tools script..."
 
-VERSION=7.2.4
+VERSION=7.2.6
 ARCHITECTURE="$(uname -m)"
+KERNEL_VERSION="$(uname -r)"
 
 if command -v VBoxService >/dev/null 2>&1; then
 	INSTALLED_VERSION=$(VBoxService --version || true)
@@ -21,16 +22,18 @@ else
 	echo "Installing VBoxGuestAdditions_$VERSION for architecture $ARCHITECTURE"
 fi
 
+echo "Kernel version: $KERNEL_VERSION"
+
 if [ -f "/usr/bin/dnf" ]; then
-	dnf install --refresh -y cpp gcc make bzip2 tar kernel-headers kernel-devel
+	dnf install --refresh -y cpp gcc make bzip2 tar elfutils-libelf-devel kernel-headers-"$KERNEL_VERSION" kernel-devel-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/apt-get" ]; then
 	export DEBIAN_FRONTEND=noninteractive
 	export DEBCONF_NONINTERACTIVE_SEEN=true
 	apt-get update -y
-	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$(uname -r)"
+	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
 	zypper refresh -y
-	zypper install -y perl cpp gcc make bzip2 tar kernel-default-devel
+	zypper install -y cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
 	if [ "$ARCHITECTURE" = "aarch64" ]; then
 		echo "==> Alpine ARM64 detected. No Guest virtualbox tools available"
@@ -83,12 +86,12 @@ fi
 
 echo "removing kernel dev packages and compilers we no longer need"
 if [ -f "/bin/dnf" ]; then
-	dnf remove -y gcc cpp kernel-headers kernel-devel
+	dnf remove -y elfutils-libelf-devel kernel-headers-"$KERNEL_VERSION" kernel-devel-"$KERNEL_VERSION" cpp gcc make
 	dnf autoremove -y
 elif [ -f "/usr/bin/apt-get" ]; then
-	apt-get purge -y --auto-remove build-essential gcc g++ make libc6-dev dkms linux-headers-"$(uname -r)"
+	apt-get purge -y --auto-remove build-essential gcc g++ make libc6-dev dkms linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
-	zypper -n rm -u kernel-default-devel gcc make
+	zypper -n rm -u kernel-default-devel cpp gcc make
 fi
 
 echo "removing leftover logs"
