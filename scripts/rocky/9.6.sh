@@ -5,21 +5,21 @@ echo "==> Running provision script (Rocky 9.6)..."
 cat << 'EOF' | sudo tee /etc/yum.repos.d/rocky-9.6-vault.repo
 [rocky-9.6-baseos]
 name=Rocky Linux 9.6 - BaseOS (Vault)
-baseurl=https://dl.rockylinux.org/vault/rocky/9.6/BaseOS/x86_64/os/
+baseurl=https://dl.rockylinux.org/vault/rocky/9.6/BaseOS/$basearch/os/
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 
 [rocky-9.6-appstream]
 name=Rocky Linux 9.6 - AppStream (Vault)
-baseurl=https://dl.rockylinux.org/vault/rocky/9.6/AppStream/x86_64/os/
+baseurl=https://dl.rockylinux.org/vault/rocky/9.6/AppStream/$basearch/os/
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 
 [rocky-9.6-extras]
 name=Rocky Linux 9.6 - Extras (Vault)
-baseurl=https://dl.rockylinux.org/vault/rocky/9.6/extras/x86_64/os/
+baseurl=https://dl.rockylinux.org/vault/rocky/9.6/extras/$basearch/os/
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
