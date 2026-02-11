@@ -80,7 +80,6 @@ rm /tmp/VBoxGuestAdditions_$VERSION.iso
 
 if ! modinfo vboxsf >/dev/null 2>&1; then
 	echo "Cannot find vbox kernel module. Installation of guest additions unsuccessful!"
-	sleep 1000
 	exit 1
 fi
 
