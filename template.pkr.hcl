@@ -30,6 +30,11 @@ variable "provision_scripts" {
   default = []
 }
 
+variable "provision_version_scripts" {
+  type = list(string)
+  default = []
+}
+
 variable "ssh_username" {
   type    = string
   default = "vagrant"
@@ -412,6 +417,14 @@ build {
     timeout         = "30m"
   }
   
+  # --- OS specific-version provisioning ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = length(var.provision_version_scripts) > 0 ? [for script_path in var.provision_version_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   # --- OS customization ---
   provisioner "shell" {
     execute_command = var.execute_command
@@ -430,7 +443,7 @@ build {
   
   # --- Force reboot ---
   provisioner "shell" {
-    pause_after = "30s"
+    pause_after = "20s"
     inline = [
       "echo 'Rebooting in background...'",
       "sleep 2 && nohup ${var.reboot_command}"
@@ -451,7 +464,7 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
-    pause_after = "30s"
+    pause_after = "20s"
     inline = [
       "echo 'Rebooting in background...'",
       "sleep 2 && nohup ${var.reboot_command}"
