@@ -11,29 +11,61 @@ else
   exit 1
 fi
 
-echo "Include /etc/ssh/sshd_config.d/*.conf" > $SSHD_CONFIG
-echo "PermitRootLogin yes" >> $SSHD_CONFIG
-echo "PasswordAuthentication yes" >> $SSHD_CONFIG
-echo "KbdInteractiveAuthentication yes" >> $SSHD_CONFIG
-echo "UseDNS no" >> $SSHD_CONFIG
-echo "Subsystem sftp /usr/lib/openssh/sftp-server" >> $SSHD_CONFIG
+# Asegurar que el directorio .d existe
+SSHD_D="${SSHD_CONFIG}.d"
+if [ ! -d "$SSHD_D" ]; then
+    mkdir -p "$SSHD_D"
+fi
 
+# Añadir el Include
+# Importante: Usamos la ruta absoluta para evitar ambigüedades
+if ! grep -iq "^Include $SSHD_D/\*.conf" "$SSHD_CONFIG"; then
+    echo "Adding Include directive to $SSHD_CONFIG"
+    # Añadir al principio del archivo para que tenga prioridad
+    sed -i "1iInclude $SSHD_D/*.conf" "$SSHD_CONFIG"
+fi
+
+# Crear el fichero de configuración personalizado
+# Usamos 99- para que sea lo último en cargar (o lo primero según la distro, 
+# pero asegura que sobreescriba valores por defecto)
+cat <<EOF > "$SSHD_D/99-sshd-custom.conf"
+PermitRootLogin yes
+PasswordAuthentication yes
+KbdInteractiveAuthentication yes
+UseDNS no
+Subsystem sftp internal-sftp
+EOF
+
+sed -i 's/^[[:space:]]*Subsystem[[:space:]]\+sftp/#&/' $SSHD_CONFIG
+
+# Validar sintaxis
+if sshd -t; then
+    echo "SSHD configuration is valid."
+else
+    echo "ERROR: Invalid SSHD configuration detected."
+    exit 1
+fi
+
+# Reiniciar el servicio
 if [ -f /etc/alpine-release ]; then
   echo "Alpine detected. Using 'rc-service sshd'."
   rc-service sshd restart
 elif command -v systemctl > /dev/null 2>&1; then
-  echo "Systemd detected. Checking for 'ssh.service' vs 'sshd.service'..."
-  if systemctl list-unit-files --type=service | grep -q '^ssh.service'; then
-        # Debian/Ubuntu
-        echo "Found 'ssh.service' (Debian/Ubuntu style)."
-        systemctl restart ssh
-    else
-        echo "Did not find 'ssh.service', using 'sshd.service' (RHEL/SUSE style)."
-        systemctl restart sshd
-    fi
+  echo "Systemd detected. Checking for 'ssh.service' vs. 'sshd.service'..."
+  if systemctl list-units --type=service | grep -q "ssh.service"; then
+    # Debian/Ubuntu
+    echo "Found 'ssh.service' (Debian/Ubuntu style)."
+    systemctl restart ssh
+  elif systemctl list-units --type=service | grep -q "sshd.service"; then
+    echo "Found 'sshd.service' (RHEL/SUSE style)."
+    systemctl restart sshd
+  else
+    # Si no están activos pero existen (ej. primer arranque)
+    systemctl restart sshd || systemctl restart ssh
+  fi
 else
-    echo "CRITICAL ERROR: Cannot determine init system (not OpenRC or Systemd)."
-    exit 1
+  # Fallback para sistemas legacy o antiguos
+  rc-service sshd restart || service sshd restart || service ssh restart || /etc/init.d/sshd restart
 fi
 
 echo "==> SSHD configuration complete."
