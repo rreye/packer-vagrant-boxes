@@ -1,10 +1,10 @@
 box_version = "12.13.0"
 
 # ISO URLs and checksums
-iso_url_amd64      = "https://cdimage.debian.org/mirror/cdimage/archive/12.13.0/amd64/iso-cd/debian-12.13.0-amd64-netinst.iso"
-iso_checksum_amd64 = "sha256:2b880ffabe36dbe04a662a3125e5ecae4db69d0acce257dd74615bbf165ad76e"
-iso_url_arm64      = "https://cdimage.debian.org/mirror/cdimage/archive/12.13.0/arm64/iso-cd/debian-12.13.0-arm64-netinst.iso"
-iso_checksum_arm64 = "sha256:71d0436089d6dc16839b0b64e1d3198a1a0d983e100223e737a40c5bab480400"
+iso_url_amd64      = "https://cdimage.debian.org/mirror/cdimage/archive/12.13.0/amd64/iso-dvd/debian-12.13.0-amd64-DVD-1.iso"
+iso_checksum_amd64 = "sha256:3e2c2092d79deca0aba80f9ffc6ff96b9b9b303d858f91e1bc2790fd83856fdb"
+iso_url_arm64      = "https://cdimage.debian.org/mirror/cdimage/archive/12.13.0/arm64/iso-dvd/debian-12.13.0-arm64-DVD-1.iso"
+iso_checksum_arm64 = "sha256:efdba04bd9620a5bd444329b09452e5b2a7d35de9644372ff3db28f80e126e77"
 
 # Scripts to run after OS install for this specific version (if any)
 provision_version_scripts = []
