@@ -9,7 +9,6 @@ if [ -f "/usr/bin/dnf" ]; then
 elif [ -f "/usr/bin/apt-get" ]; then
   export DEBIAN_FRONTEND=noninteractive
   export DEBCONF_NONINTERACTIVE_SEEN=true
-  apt-get update -y
   apt-get install -y open-vm-tools
   systemctl enable open-vm-tools
   systemctl start open-vm-tools

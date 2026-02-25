@@ -37,3 +37,5 @@ shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
 # Scripts to run after OS install
 provision_scripts = ["ubuntu/22.04-base.sh"]
+# Scripts to run before box bulding
+cleanup_scripts = []

@@ -31,6 +31,8 @@ fi
 rm -rf /tmp/* /var/tmp/*
 find /var/cache -type f -exec rm -rf {} \;
 find /var/log -type f -delete
+cat /dev/null > /var/log/wtmp
+cat /dev/null > /var/log/lastlog
 
 # Remove machine-id to force regeneration on first boot
 truncate -s 0 /etc/machine-id
@@ -138,6 +140,7 @@ fi
 echo "==> Final sync to disk..."
 sync
 sleep 5
+sync
 sync
 
 echo "==> Cleanup complete."

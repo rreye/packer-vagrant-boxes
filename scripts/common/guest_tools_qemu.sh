@@ -12,7 +12,6 @@ if [ -f "/usr/bin/dnf" ]; then
 elif [ -f "/usr/bin/apt-get" ]; then
   export DEBIAN_FRONTEND=noninteractive
   export DEBCONF_NONINTERACTIVE_SEEN=true
-  apt-get update -y
   apt-get install -y qemu-guest-agent
   systemctl stop qemu-guest-agent || true
 elif [ -f "/usr/bin/zypper" ]; then

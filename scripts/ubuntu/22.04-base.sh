@@ -8,7 +8,7 @@ export DEBCONF_NONINTERACTIVE_SEEN=true
 
 # Install common tools
 apt-get clean
-apt-get update
+apt-get update -y
 apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg language-pack-es
 
 update-locale LANG=es_ES.UTF-8

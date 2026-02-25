@@ -29,7 +29,6 @@ if [ -f "/usr/bin/dnf" ]; then
 elif [ -f "/usr/bin/apt-get" ]; then
 	export DEBIAN_FRONTEND=noninteractive
 	export DEBCONF_NONINTERACTIVE_SEEN=true
-	apt-get update -y
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
 	zypper refresh -y

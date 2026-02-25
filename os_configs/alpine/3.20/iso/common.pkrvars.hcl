@@ -51,3 +51,5 @@ shutdown_command = "poweroff"
 
 # Scripts to run after OS install
 provision_scripts = ["alpine/3.20-base.sh"]
+# Scripts to run before box bulding
+cleanup_scripts = []

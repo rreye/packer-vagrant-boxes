@@ -33,5 +33,7 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 # Shutdown command
 shutdown_command = "echo 'vagrant' | sudo -S /sbin/halt -h -p"
 
-# Scripts to run after OS install for this specific version (if any)
+# Scripts to run after OS install
 provision_scripts = ["rocky/9-base.sh"]
+# Scripts to run before box bulding
+cleanup_scripts = []

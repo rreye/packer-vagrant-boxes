@@ -30,6 +30,11 @@ variable "provision_scripts" {
   default = []
 }
 
+variable "cleanup_scripts" {
+  type = list(string)
+  default = []
+}
+
 variable "provision_version_scripts" {
   type = list(string)
   default = []
@@ -316,7 +321,7 @@ source "qemu" "amd64" {
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
   headless           = true
-  use_default_display = false
+  use_default_display = true
   qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
   machine_type       = "q35"
@@ -344,7 +349,7 @@ source "qemu" "arm64" {
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
   headless           = true
-  use_default_display = false
+  use_default_display = true
   qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
   machine_type       = "virt"
@@ -425,7 +430,7 @@ build {
     timeout         = "30m"
   }
   
-  # --- OS customization ---
+  # --- OS provisioning ---
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = length(var.provision_scripts) > 0 ? [for script_path in var.provision_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
@@ -485,6 +490,14 @@ build {
     only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+
+  # --- OS cleanup ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = length(var.cleanup_scripts) > 0 ? [for script_path in var.cleanup_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
