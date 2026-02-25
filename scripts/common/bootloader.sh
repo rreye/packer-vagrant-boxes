@@ -22,6 +22,8 @@ set_grub_timeout() {
   else
     echo "GRUB_TIMEOUT_STYLE=menu" >> "$FILE"
   fi
+  
+  echo "Bootloader timeout set to ${NEW_TIMEOUT}s."
 }
 
 generate_grub_cfg_rhel() {
@@ -45,6 +47,8 @@ disable_predictable_netnames() {
       # Si no existe, crea la variable
       echo 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' >> "$FILE"
     fi
+    
+    echo "Disabled predictable netnames."
   fi
 }
 
@@ -94,7 +98,7 @@ case "$DISTRO_ID" in
     else
     	echo "   (efibootmgr/aboot or unknown bootloader)"
       	echo "   No GRUB/syslinux config found. This is normal for fast-boot EFI."
-      	echo "   Skipping timeout change."
+      	echo "   Skipping configuration."
     fi
     ;;
 
@@ -105,6 +109,5 @@ case "$DISTRO_ID" in
 esac
 
 sleep 2
-echo "Bootloader timeout set to ${NEW_TIMEOUT}s."
 
 echo "==> Bootloader configuration complete."

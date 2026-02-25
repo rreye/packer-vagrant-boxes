@@ -23,6 +23,7 @@ boot_command_amd64 = [
   "fb=false ",
   "debconf/frontend=noninteractive ",
   "console-setup/ask_detect=false ",
+  "net.ifnames=0 biosdevname=0 ",
   "<enter><wait>"
 ]
 
@@ -42,6 +43,7 @@ boot_command_arm64 = [
   "fb=false ",
   "debconf/frontend=noninteractive ",
   "console-setup/ask_detect=false ",
+  "net.ifnames=0 biosdevname=0 ",
   "--- <enter>",  
   "<wait>",
   "initrd /install.a64/initrd.gz<enter>",
