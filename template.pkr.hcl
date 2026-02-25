@@ -409,10 +409,10 @@ build {
     timeout         = "30m"
   }
 
-  # --- GRUB config ---
+  # --- Bootloader config ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/grub.sh"]
+    scripts = ["${path.root}/scripts/common/bootloader.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
