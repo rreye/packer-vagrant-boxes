@@ -22,7 +22,7 @@ boot_command_arm64 = [
     "<wait><down><down><end><wait>",
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
-    " net.ifnames=0", # Consistent network names
+    " net.ifnames=0 biosdevname=0", # Consistent network names
     "<wait><f10>" # Start boot
 ]
 
