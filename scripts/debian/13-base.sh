@@ -11,34 +11,15 @@ PACKAGES="vim nano git curl wget tree net-tools openssh-server rsync unzip sudo 
 . /etc/os-release
 CODENAME=$VERSION_CODENAME
 COMPONENTS="main contrib non-free non-free-firmware"
-
-echo "    Configuring repositories (Auto-detection Offline/Online)..."
 echo "    Debian Codename: ${CODENAME}"
 
-if mount /dev/cdrom /media/cdrom 2>/dev/null || mount /dev/sr0 /media/cdrom 2>/dev/null; then
-    echo "    [OFFLINE] -> CD-ROM detected and mounted."
-    echo "    [LSBLK]:"
-    lsblk
-    apt-cdrom -m -d /media/cdrom add
-    echo "    Installing packages..."
-    apt-get install -y $PACKAGES
-
-    echo "deb http://deb.debian.org/debian/ ${CODENAME} ${COMPONENTS}" >> /etc/apt/sources.list
-    apt-get update -y 2>/dev/null || true
-else
-    echo "    [ONLINE] -> No CD-ROM. Configuring internet repositories..."
-    
-    cat <<EOF > /etc/apt/sources.list
-deb http://deb.debian.org/debian/ ${CODENAME} ${COMPONENTS}
-deb http://security.debian.org/debian-security ${CODENAME}-security ${COMPONENTS}
-deb http://deb.debian.org/debian/ ${CODENAME}-updates ${COMPONENTS}
-EOF
-
-    apt-get clean
-    apt-get update -y
-    echo "    Installing packages..."
-    apt-get install -y $PACKAGES
-fi
+apt-get clean
+echo "deb [trusted=yes] file:///opt/debian-offline ${CODENAME} ${COMPONENTS}" > /etc/apt/sources.list
+apt-get update -y
+echo "    Installing packages..."
+apt-get install -y $PACKAGES
+echo "deb http://deb.debian.org/debian/ ${CODENAME} ${COMPONENTS}" >> /etc/apt/sources.list
+apt-get update -y 2>/dev/null || true
 
 
 sed -i 's/^# *es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' /etc/locale.gen

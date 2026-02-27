@@ -15,11 +15,9 @@ elif [ -f "/usr/bin/apt-get" ]; then
   apt-get install -y qemu-guest-agent
   systemctl stop qemu-guest-agent || true
 elif [ -f "/usr/bin/zypper" ]; then
-  zypper refresh -y
   zypper install -y qemu-guest-agent
   systemctl stop qemu-guest-agent || true
 elif [ -f "/sbin/apk" ]; then
-  apk update
   apk add --no-cache qemu-guest-agent
   rc-update add qemu-guest-agent default || true
   rc-service qemu-guest-agent stop || true

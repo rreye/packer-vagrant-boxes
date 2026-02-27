@@ -4,7 +4,6 @@ echo "==> Running provision script (Alpine)..."
 
 # Install common tools
 apk cache clean
-apk update
 apk add --no-cache vim nano git curl wget tree net-tools openssh-server rsync util-linux musl-locales
 
 # Enable community repository if needed for more packages

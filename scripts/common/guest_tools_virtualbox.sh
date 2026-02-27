@@ -31,7 +31,6 @@ elif [ -f "/usr/bin/apt-get" ]; then
 	export DEBCONF_NONINTERACTIVE_SEEN=true
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
-	zypper refresh -y
 	zypper install -y cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
 	if [ "$ARCHITECTURE" = "aarch64" ]; then
@@ -40,7 +39,6 @@ elif [ -f "/sbin/apk" ]; then
 	fi
 
 	echo "==> Alpine x86_64 detected. Installing using apk"
-	apk update
 	apk add --no-cache virtualbox-guest-additions
 	rc-service virtualbox-guest-additions start
 	rc-update add virtualbox-guest-additions boot
