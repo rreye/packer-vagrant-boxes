@@ -448,7 +448,7 @@ build {
   
   # --- Force reboot ---
   provisioner "shell" {
-    pause_after = "20s"
+    pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
       "sleep 2 && nohup ${var.reboot_command}"
@@ -469,7 +469,7 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
-    pause_after = "20s"
+    pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
       "sleep 2 && nohup ${var.reboot_command}"
