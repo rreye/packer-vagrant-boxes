@@ -425,12 +425,12 @@ build {
   # --- OS specific-version provisioning ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = length(var.provision_version_scripts) > 0 ? [for script_path in var.provision_version_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
+    scripts = length(var.provision_version_scripts) > 0 ? [for script_path in var.provision_version_scripts : "${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
   
-  # --- OS provisioning ---
+  # --- OS base provisioning ---
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = length(var.provision_scripts) > 0 ? [for script_path in var.provision_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
@@ -494,7 +494,7 @@ build {
     timeout         = "30m"
   }
 
-  # --- OS cleanup ---
+  # --- OS base cleanup ---
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = length(var.cleanup_scripts) > 0 ? [for script_path in var.cleanup_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
@@ -502,7 +502,7 @@ build {
     timeout         = "30m"
   }
 
-  # --- Cleanup ---
+  # --- Common cleanup ---
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/cleanup.sh"]

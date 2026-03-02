@@ -7,4 +7,4 @@ iso_url_arm64      = "https://cdimage.debian.org/mirror/cdimage/release/13.3.0/a
 iso_checksum_arm64 = "sha256:7dc8095a2c94761f499712cbeae5a8ace69f69d3e9e795f0542abcbd86b4f5d7"
 
 # Scripts to run after OS install for this specific version (if any)
-provision_version_scripts = []
+provision_version_scripts = ["scripts/13.3.sh"]

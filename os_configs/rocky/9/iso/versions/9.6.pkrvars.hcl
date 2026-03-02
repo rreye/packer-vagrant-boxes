@@ -7,4 +7,4 @@ iso_url_arm64      = "https://dl.rockylinux.org/vault/rocky/9.6/isos/aarch64/Roc
 iso_checksum_arm64 = "sha256:4dbba6104aa1025fae5a540785e905fab7864dad118168e822042583f8020a99"
 
 # Scripts to run after OS install for this specific version (if any)
-provision_version_scripts = ["rocky/9.6.sh"]
+provision_version_scripts = ["scripts/9.6.sh"]

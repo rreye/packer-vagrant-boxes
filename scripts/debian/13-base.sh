@@ -6,21 +6,10 @@ echo "==> Running provision script (Debian)..."
 export DEBIAN_FRONTEND=noninteractive
 export DEBCONF_NONINTERACTIVE_SEEN=true
 
-PACKAGES="vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg locales"
-
-. /etc/os-release
-CODENAME=$VERSION_CODENAME
-COMPONENTS="main contrib non-free non-free-firmware"
-echo "    Debian Codename: ${CODENAME}"
-
+# Install common tools
 apt-get clean
-echo "deb [trusted=yes] file:///opt/debian-offline ${CODENAME} ${COMPONENTS}" > /etc/apt/sources.list
 apt-get update -y
-echo "    Installing packages..."
-apt-get install -y $PACKAGES
-echo "deb http://deb.debian.org/debian/ ${CODENAME} ${COMPONENTS}" >> /etc/apt/sources.list
-apt-get update -y 2>/dev/null || true
-
+apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg locales
 
 sed -i 's/^# *es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
@@ -32,7 +21,7 @@ if [ -f /bin/bash ]; then
     echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.bashrc
 fi
 
-echo "    Disabling systemd apt timers/services."
+echo "disable systemd apt timers/services"
 systemctl stop apt-daily.timer
 systemctl stop apt-daily-upgrade.timer
 systemctl disable apt-daily.timer

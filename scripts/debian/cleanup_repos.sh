@@ -20,6 +20,8 @@ deb http://security.debian.org/debian-security ${CODENAME}-security ${COMPONENTS
 deb http://deb.debian.org/debian/ ${CODENAME}-updates ${COMPONENTS}
 EOF
 
+rm /etc/apt/sources.list.d/snapshot.list 2>/dev/null || true
+rm /etc/apt/apt.conf.d/99snapshot 2>/dev/null || true
 apt-get clean
 apt-get update -y
 apt-get clean
