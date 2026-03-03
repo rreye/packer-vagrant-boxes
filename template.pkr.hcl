@@ -175,7 +175,7 @@ source "virtualbox-iso" "amd64" {
   disk_size          = var.disk_size
   hard_drive_interface = "sata"
   iso_interface      = "sata"
-  format             = "ova" # Required for vagrant post-processor
+  format             = "ova"
   headless           = false
   guest_additions_mode = "disable"
   gfx_controller     = "vmsvga"
@@ -265,7 +265,7 @@ source "vmware-iso" "amd64" {
   usb                = true
   network_adapter_type = "vmxnet3"
   vmx_remove_ethernet_interfaces = true
-  format             = "vmx" # Required for vagrant post-processor
+  format             = "vmx"
   headless           = false
 }
 
