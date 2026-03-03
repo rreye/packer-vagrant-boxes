@@ -379,6 +379,38 @@ source "vagrant" "utm" {
   ssh_read_write_timeout = "1m"
 }
 
+source "utm-iso" "arm64" {
+  iso_url            = local.iso_url == null ? "dummy" : local.iso_url
+  iso_checksum       = local.iso_checksum
+  http_directory     = var.http_directory
+  boot_command       = var.boot_command_arm64
+  boot_wait          = var.boot_wait
+  ssh_username       = var.ssh_username
+  ssh_password       = var.ssh_password
+  ssh_timeout        = "20m"
+  ssh_read_write_timeout = "1m"
+  output_directory   = "output-utm-arm64"
+  shutdown_command   = var.shutdown_command
+  cpus               = var.cpus
+  memory             = var.memory
+  disk_size          = var.disk_size
+  hard_drive_interface = "virtio"
+  iso_interface      = "usb"
+  headless           = false
+  guest_additions_mode = "disable"
+  #UTM specific
+  uefi_boot          = true
+  hypervisor         = true
+  vm_backend         = "apple"
+  vm_arch            = "aarch64"
+  display_hardware_type = "virtio-gpu-pci"
+  disable_vnc        = false
+  boot_nopause       = true
+  display_nopause    = true
+  export_nopause     = true
+  keep_registered    = false
+}
+
 # --- 4. Build Block (Provisioning) ---
 build {
   # List all possible sources
@@ -553,7 +585,7 @@ build {
   # UTM (special post-processor)
   # -----------------------
   post-processor "utm-vagrant" {
-    only = ["vagrant.utm"]
+    only = ["utm-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     compression_level    = 9
     keep_input_artifact  = false
