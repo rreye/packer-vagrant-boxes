@@ -3,7 +3,7 @@
 packer {
   required_plugins {
     virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
-    vmware     = { version = ">= 1.2.0", source = "github.com/hashicorp/vmware" }
+    vmware     = { version = ">= 2.0.0", source = "github.com/hashicorp/vmware" }
     qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
     utm        = { version = ">= v4.0.0", source  = "github.com/naveenrajm7/utm"}
     vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
@@ -261,6 +261,9 @@ source "vmware-iso" "amd64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
+  disk_adapter_type  = "sata"
+  usb                = true
+  network_adapter_type = "e1000e"
   format             = "vmx" # Required for vagrant post-processor
   headless           = true
 }
@@ -282,6 +285,9 @@ source "vmware-iso" "arm64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = var.disk_size
+  disk_adapter_type  = "sata"
+  usb                = true
+  network_adapter_type = "e1000e"
   format             = "vmx"
   headless           = true
 }
