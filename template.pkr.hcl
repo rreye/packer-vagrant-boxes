@@ -263,7 +263,7 @@ source "vmware-iso" "amd64" {
   disk_size          = var.disk_size
   disk_adapter_type  = "sata"
   usb                = true
-  network_adapter_type = "vmxnet3"
+  network_adapter_type = "e1000e"
   vmx_remove_ethernet_interfaces = true
   format             = "vmx"
   headless           = false
