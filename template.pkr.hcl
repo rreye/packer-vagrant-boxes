@@ -3,7 +3,7 @@
 packer {
   required_plugins {
     virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
-    vmware     = { version = "= 1.2.0", source = "github.com/hashicorp/vmware" }
+    vmware     = { version = ">= 2.0.0", source = "github.com/hashicorp/vmware" }
     qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
     utm        = { version = ">= v4.0.0", source  = "github.com/naveenrajm7/utm"}
     vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
@@ -238,7 +238,7 @@ source "vagrant" "vmware" {
   skip_add     = false
   add_force    = true
   communicator = "ssh"
-  ssh_username = var.ssh_password
+  ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
@@ -263,7 +263,7 @@ source "vmware-iso" "amd64" {
   disk_size          = var.disk_size
   disk_adapter_type  = "sata"
   usb                = true
-  network_adapter_type = "e1000e"
+  network_adapter_type = "vmxnet3"
   vmx_remove_ethernet_interfaces = true
   format             = "vmx" # Required for vagrant post-processor
   headless           = false
@@ -518,20 +518,52 @@ build {
     timeout         = "30m"
   }
   
-  # --- 5. Post-Processing ---
-  # Create the Vagrant box file from the build artifact
+    # Create the Vagrant box file from the build artifact
   post-processor "vagrant" {
     except = ["vagrant.virtualbox", "vagrant.vmware", "vagrant.libvirt", "vagrant.utm"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-{{.Provider}}.box"
     compression_level = 9
     keep_input_artifact = false # Delete the intermediate VM files
   }
+  
+  # --- 5. Post-Processing ---
+  # -----------------------
+  # VirtualBox
+  # -----------------------
+  post-processor "vagrant" {
+    only     = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
+    compression_level    = 9
+    keep_input_artifact  = false
+  }
 
-  # UTM Vagrant post-processor
+  # -----------------------
+  # VMware (Desktop/Fusion/Workstation)
+  # -----------------------
+  post-processor "vagrant" {
+    only     = ["vmware-iso.amd64", "vmware-iso.arm64"]
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
+    compression_level    = 9
+    keep_input_artifact  = false
+  }
+
+  # -----------------------
+  # Libvirt (QEMU)
+  # -----------------------
+  post-processor "vagrant" {
+    only     = ["qemu.amd64", "qemu.arm64"]
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
+    compression_level    = 9
+    keep_input_artifact  = false
+  }
+
+  # -----------------------
+  # UTM (special post-processor)
+  # -----------------------
   post-processor "utm-vagrant" {
     only = ["vagrant.utm"]
-    output = "${var.box_name}-${var.build_arch}-${var.box_version}-{{.Provider}}.box"
-    compression_level = 9
-    keep_input_artifact = false # Delete the intermediate VM files
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
+    compression_level    = 9
+    keep_input_artifact  = false
   }
 }
