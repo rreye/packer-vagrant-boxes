@@ -396,12 +396,11 @@ source "utm-iso" "arm64" {
   disk_size          = var.disk_size
   hard_drive_interface = "virtio"
   iso_interface      = "usb"
-  headless           = false
   guest_additions_mode = "disable"
   #UTM specific
   uefi_boot          = true
   hypervisor         = true
-  vm_backend         = "apple"
+  vm_backend         = "qemu"
   vm_arch            = "aarch64"
   display_hardware_type = "virtio-gpu-pci"
   disable_vnc        = false
@@ -422,6 +421,7 @@ build {
     "source.vmware-iso.arm64",
     "source.qemu.amd64",
     "source.qemu.arm64",
+    "source.utm-iso.arm64",
     # BOX
     "source.vagrant.virtualbox",
     "source.vagrant.vmware",
