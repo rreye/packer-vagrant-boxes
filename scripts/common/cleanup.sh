@@ -35,6 +35,7 @@ cat /dev/null > /var/log/wtmp
 cat /dev/null > /var/log/lastlog
 
 # Remove machine-id to force regeneration on first boot
+sed -i '/127.0.1.1.*packer-*/d' /etc/hosts
 truncate -s 0 /etc/machine-id
 if [ -f "/var/lib/dbus/machine-id" ]; then
 	rm /var/lib/dbus/machine-id
