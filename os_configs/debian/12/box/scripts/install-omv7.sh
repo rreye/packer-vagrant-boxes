@@ -62,5 +62,9 @@ omv-confdbadm populate
 # (core.fqdns and core.ip_fqdn) will take a very long time.
 omv-salt deploy run hosts
 
+systemctl stop systemd-networkd-wait-online.service
+systemctl mask systemd-networkd-wait-online.service
+systemctl mask openmediavault-issue.service
+
 # Display the login information
 cat /etc/issue
