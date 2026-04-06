@@ -12,4 +12,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 # Shutdown command
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
-box_provision_scripts = ["scripts/install-omv8.sh", "scripts/install-omv8-part2.sh"]
+box_provision_scripts = ["scripts/install-omv8.sh", "scripts/finish-omv8-install.sh"]
