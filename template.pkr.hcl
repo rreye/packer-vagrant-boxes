@@ -15,10 +15,10 @@ packer {
 # --- 1. Common variables ---
 variable "box_name" { type = string }		# e.g., "ubuntu-24.04"
 variable "box_version" { type = string }        # e.g., "1.0.0"
+variable "build_arch" { type = string }         # e.g., "amd64"
 variable "execute_command" { type = string }	# Command to execute provisioning scripts
 variable "shutdown_command" { type = string }   # Command to shut down the VM cleanly
 variable "reboot_command" { type = string }	# Command to reboot the VM
-
 
 variable "boot_wait" {
   type = string
@@ -64,11 +64,6 @@ variable "box_provision_scripts" {
 }
 
 # --- 1. Variables "ISO-only" ---
-variable "build_arch" {
-  type    = string
-  default = null
-}
-
 variable "iso_url_amd64" {
   type    = string
   default = null
@@ -491,7 +486,7 @@ build {
     pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
-      "sleep 2 && nohup ${var.reboot_command}"
+      "sleep 2 && nohup ${var.reboot_command}  && sleep 100"
     ]
     expect_disconnect = true
     timeout         = "30m"
@@ -512,7 +507,7 @@ build {
     pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
-      "sleep 2 && nohup ${var.reboot_command}"
+      "sleep 2 && nohup ${var.reboot_command} && sleep 100"
     ]
     expect_disconnect = true
     timeout         = "30m"
@@ -560,7 +555,13 @@ build {
     compression_level    = 9
     keep_input_artifact  = false
   }
-
+  post-processor "shell-local" {
+    only   = ["vagrant.virtualbox"]
+    inline = [
+      "mv output-virtualbox/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
+    ]
+  }
+  
   # -----------------------
   # VMware (Desktop/Fusion/Workstation)
   # -----------------------
@@ -570,7 +571,13 @@ build {
     compression_level    = 9
     keep_input_artifact  = false
   }
-
+  post-processor "shell-local" {
+    only   = ["vagrant.vmware"]
+    inline = [
+      "mv output-vmware/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
+    ]
+  }
+  
   # -----------------------
   # Libvirt (QEMU)
   # -----------------------
@@ -580,14 +587,26 @@ build {
     compression_level    = 9
     keep_input_artifact  = false
   }
-
+  post-processor "shell-local" {
+    only   = ["vagrant.libvirt"]
+    inline = [
+      "mv output-libvirt/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
+    ]
+  }
+  
   # -----------------------
-  # UTM (special post-processor)
+  # UTM (special vagrant post-processor)
   # -----------------------
   post-processor "utm-vagrant" {
     only = ["utm-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     compression_level    = 9
     keep_input_artifact  = false
+  }
+  post-processor "shell-local" {
+    only   = ["vagrant.utm"]
+    inline = [
+      "mv output-utm/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
+    ]
   }
 }
