@@ -483,6 +483,7 @@ build {
   
   # --- Force reboot ---
   provisioner "shell" {
+    pause_before = "10s"
     pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
@@ -504,6 +505,7 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
+    pause_before = "10s"
     pause_after = "10s"
     inline = [
       "echo 'Rebooting in background...'",
