@@ -1,13 +1,11 @@
-#!/bin/sh
+#!/bin/bash -eux
 
-set -e
-
-echo "Esperando a que apt/dpkg liberen el sistema..."
+echo "==> Waiting for apt/dpkg..."
 while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-	sleep 5
+	sleep 10
 done
 
-echo "Populating database ..."
+echo "==> Populating the database..."
 # Populate the database.
 omv-confdbadm populate
 
@@ -16,9 +14,9 @@ omv-confdbadm populate
 # (core.fqdns and core.ip_fqdn) will take a very long time.
 omv-salt deploy run hosts
 
-systemctl stop systemd-networkd-wait-online.service
-systemctl mask systemd-networkd-wait-online.service
-systemctl mask openmediavault-issue.service
-	
 # Display the login information.
 cat /etc/issue
+
+omv-salt deploy run monit
+
+echo "==> Installation complete"

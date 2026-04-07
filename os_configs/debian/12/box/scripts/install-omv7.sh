@@ -1,29 +1,11 @@
-#!/bin/sh
-#
-# This file is part of openmediavault.
-#
-# @license   https://www.gnu.org/licenses/gpl.html GPL Version 3
-# @author    Volker Theile <volker.theile@openmediavault.org>
-# @copyright Copyright (c) 2009-2024 Volker Theile
-#
-# openmediavault is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
-#
-# openmediavault is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with openmediavault. If not, see <https://www.gnu.org/licenses/>.
-
-set -eux
+#!/bin/bash -eux
 
 export LANG=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
+export DEBCONF_NONINTERACTIVE_SEEN=true
 export APT_LISTCHANGES_FRONTEND=none
+OMV_VERSION="7"
+OMV_VERSION_CODENAME="sandworm"
 
 # Set hostname
 hostnamectl set-hostname omv-server
@@ -36,16 +18,16 @@ sed -i '/-backports/s/^/#/' /etc/apt/sources.list
 usermod --groups _ssh --append vagrant
 
 # Install the OMV keyring manually
-apt-get update
 apt-get --yes install gnupg
 wget --quiet --output-document=- https://packages.openmediavault.org/public/archive.key | \
 	gpg --dearmor --yes --output "/usr/share/keyrings/openmediavault-archive-keyring.gpg"
 	
-# Install OMV
+# Configure repo and install OMV
 cat <<EOF > /etc/apt/sources.list.d/openmediavault.list
-deb [signed-by=/usr/share/keyrings/openmediavault-archive-keyring.gpg] https://packages.openmediavault.org/public sandworm main
+deb [signed-by=/usr/share/keyrings/openmediavault-archive-keyring.gpg] https://packages.openmediavault.org/public ${OMV_VERSION_CODENAME} main
 EOF
 
+echo "==> Installing openmediavault (${OMV_VERSION_CODENAME}) ..."
 apt-get update
 apt-get --yes --auto-remove --show-upgraded \
 	--allow-downgrades --allow-change-held-packages \
@@ -54,6 +36,7 @@ apt-get --yes --auto-remove --show-upgraded \
 	--option DPkg::Options::="--force-confold" \
 	install openmediavault
 
+echo "==> Populating the database..."
 # Populate the database
 omv-confdbadm populate
 
@@ -62,9 +45,10 @@ omv-confdbadm populate
 # (core.fqdns and core.ip_fqdn) will take a very long time.
 omv-salt deploy run hosts
 
-systemctl stop systemd-networkd-wait-online.service
-systemctl mask systemd-networkd-wait-online.service
-systemctl mask openmediavault-issue.service
-
 # Display the login information
 cat /etc/issue
+
+omv-salt deploy run monit
+
+echo "==> Installation complete"
+
