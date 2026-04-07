@@ -82,7 +82,6 @@ rm -rf /var/lib/systemd/network/mac1* 2>/dev/null || true
 
 # Remove machine-id to force regeneration on first boot
 sed -i '/127.0.1.1.*packer-*/d' /etc/hosts
-rm -f /etc/ssh/ssh_host_*
 if [ -f "/etc/machine-id" ]; then
 	truncate -s 0 /etc/machine-id
 fi
