@@ -1,5 +1,5 @@
-box_name         = "omv8"
-box_version      = "1.0"
+box_name         = "debian-13-gui"
+box_version      = "20260407"
 
 // Base box used
 base_box         = "rreye/debian-13"
@@ -12,4 +12,4 @@ reboot_command = "echo 'vagrant' | sudo -S shutdown -rf now"
 # Shutdown command
 shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 
-box_provision_scripts = ["scripts/install-omv8.sh", "scripts/finish-omv8-install.sh"]
+box_provision_scripts = ["scripts/install-gnome.sh"]
