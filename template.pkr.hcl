@@ -547,6 +547,14 @@ build {
     timeout         = "30m"
   }
   
+   # --- Minimize box size ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = ["${path.root}/scripts/common/wipe.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
   # --- 5. Post-Processing ---
   # -----------------------
   # VirtualBox

@@ -7,38 +7,88 @@ if [ -f /etc/sudoers.d/_packer_env ]; then
 fi
 
 if [ -f "/usr/bin/dnf" ]; then
+	echo "==> Cleaning DNF (RHEL/Fedora/Alma/Rocky)..."
+	# Purge old kernels
+	dnf -y remove "$(dnf repoquery --installonly --latest-limit=-1 -q)"
+	# Remove linux firmware
+	distro="$(rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-')"
+	if [ "$distro" != 'oraclelinux' ]; then
+  		dnf -y remove linux-firmware
+	fi
+	
+	# Standard cleanup
 	dnf autoremove -y
 	dnf clean all --enablerepo=\*
-	rm -rf /var/cache/dnf
+	rm -rf /var/cache/dnf/*
 elif [ -f "/usr/bin/apt-get" ]; then
+	echo "==> Cleaning APT (Debian/Ubuntu)..."
+	# Purge old kernels
+	dpkg --list | awk '{ print $2 }' \
+    	    | grep 'linux-image-.*-generic' || true \
+    	    | grep -v "$(uname -r)" || true \
+    	    | xargs -r apt-get -y purge;
+
+	# Exclude the files we don't need w/o uninstalling linux-firmware
+	cat <<_EOF_ | cat >> /etc/dpkg/dpkg.cfg.d/excludes
+#BENTO-BEGIN
+path-exclude=/lib/firmware/*
+path-exclude=/usr/share/doc/linux-firmware/*
+#BENTO-END
+_EOF_
+	# Remove linux firmware
+	rm -rf /lib/firmware/*
+	rm -rf /usr/share/doc/linux-firmware/*
+
+	# Standard cleanup
 	apt-get autoremove -y
 	apt-get clean -y
 	apt-get autoclean
 	rm -rf /var/lib/apt/lists/*
+	rm -rf /var/cache/apt/archives/*
 elif [ -f "/usr/bin/zypper" ]; then
+	echo "==> Cleaning Zypper (SUSE/openSUSE)..."
+	# Purge old kernels
+	zypper purge-kernels
+	# Remove linux firmware
+	zypper rm -u kernel-firmware
 	ORPHANS=$(zypper -q packages --orphaned | awk '{print $5}')
     	if [ -n "$ORPHANS" ]; then
       		zypper -n rm $ORPHANS
     	fi
 	zypper clean --all
-	rm -rf /var/cache/zypp/packages
+	rm -rf /var/cache/zypp/packages/*
 elif [ -f "/sbin/apk" ]; then
+	echo "==> Cleaning APK (Alpine)..."
+	# Remove linux firmware
+	apk del linux-firmware
 	apk cache clean
 	rm -rf /var/cache/apk/*
 fi
 
-# Remove temporary files and logs
+# Remove temporary files, logs and other files
 rm -rf /tmp/* /var/tmp/*
-find /var/cache -type f -exec rm -rf {} \;
-find /var/log -type f -delete
+find /var/log -type f -exec sh -c '> "$1"' _ {} \;
 cat /dev/null > /var/log/wtmp
 cat /dev/null > /var/log/lastlog
 
+echo "==> Cleaning DHCP leases..."
+rm -f /var/lib/dhcp/*
+rm -f /var/lib/dhcpv6/*
+rm -f /var/lib/dhclient/*
+rm -f /var/lib/NetworkManager/*.lease
+rm -f /var/lib/wicked/*
+# Para sistemas modernos con systemd-networkd
+rm -rf /var/lib/systemd/network/mac1* 2>/dev/null || true
+
 # Remove machine-id to force regeneration on first boot
 sed -i '/127.0.1.1.*packer-*/d' /etc/hosts
-truncate -s 0 /etc/machine-id
+rm -f /etc/ssh/ssh_host_*
+if [ -f "/etc/machine-id" ]; then
+	truncate -s 0 /etc/machine-id
+fi
+
 if [ -f "/var/lib/dbus/machine-id" ]; then
-	rm /var/lib/dbus/machine-id
+	rm -f /var/lib/dbus/machine-id
 	ln -s /etc/machine-id /var/lib/dbus/machine-id
 fi
 
@@ -47,8 +97,12 @@ if [ -f "/var/lib/systemd/random-seed" ]; then
   rm -f /var/lib/systemd/random-seed
 fi
 
-# Clear bash history (if bash is used)
+echo "==> Clearing shell history..."
 unset HISTFILE
+rm -f /root/.wget-hsts
+rm -rf /root/.cache
+rm -rf /root/.viminfo
+# Clear bash history (if bash is used)
 if [ -f /home/vagrant/.bash_history ]; then
   rm -f /home/vagrant/.bash_history
 fi
@@ -62,86 +116,5 @@ fi
 if [ -f /root/vagrant/.ash_history ]; then
   rm -f /root/.ash_history
 fi
-
-echo "==> Zeroing free space to shrink box..."
-RESERVE_MB=25
-GA_WIPE_LIMIT_MB=32768
-PARTITIONS=$(
-  lsblk -lnpo MOUNTPOINT,FSTYPE |
-  awk '$1 != "" && $2 ~ /ext[234]|xfs|btrfs|vfat|f2fs/ {print $1}' |
-  sort |
-  grep -v "^/$" |
-  { cat; printf "/\n"; }
-)
-echo "### Partitions detected:"
-printf "%s\n" "$PARTITIONS"
-
-wipe_partition() {
-    local mountpoint="$1"
-    local available=0
-    available=$(df -BM -P "$mountpoint" | awk 'END{print $4}' | sed 's/M//')
-
-    if [ "$available" -le "$RESERVE_MB" ]; then
-        echo "Skipping ${mountpoint}: not enough free space (${available} MB)"
-        return
-    fi
-
-    local wipe_mb=$((available - RESERVE_MB))
-    echo "${wipe_mb} MB of free space in ${mountpoint}"
-    if [ "$wipe_mb" -le 0 ]; then
-        echo "Skipping ${mountpoint}: not enough free space (${wipe_mb} MB)"
-        return
-    fi
-    echo "Zeroing will be limited to ${GA_WIPE_LIMIT_MB} MB"
-    if [ "$wipe_mb" -gt "$GA_WIPE_LIMIT_MB" ]; then
-      wipe_mb=$GA_WIPE_LIMIT_MB
-    fi
-    
-    local outfile="${mountpoint%/}/whitespace"
-    [ "$mountpoint" = "/" ] && outfile="/whitespace"
-    echo "Filling ${wipe_mb} MB with zeros in ${mountpoint} using ${outfile}..."
-    dd if=/dev/zero of="$outfile" bs=1M count="$wipe_mb" || echo "dd exit code $? is suppressed";
-    rm "$outfile"
-    sync
-    sleep 5
-    echo "Done!"
-}
-
-# Wipe partitions
-printf "%s\n" "$PARTITIONS" | while IFS= read -r PART; do
-  [ -z "$PART" ] && continue
-  echo "-> Wiping free space in $PART"
-  sync
-  sleep 5
-  wipe_partition "$PART"
-done
-
-echo "==> Locating swap partitions..."
-set +e
-swapuuid="$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)";
-case "$?" in
-    2|0) ;;
-    *) echo "No swap partition found by blkid. Skipping swap zero."
-    swapuuid=""
-    ;;
-esac
-set -e
-
-if [ "x${swapuuid}" != "x" ]; then
-    # Whiteout the swap partition to reduce box size
-    # Swap is disabled till reboot
-    echo "==> Zeroing swap partition..."
-    swappart="$(readlink -f /dev/disk/by-uuid/"$swapuuid")";
-    /sbin/swapoff "$swappart" || true;
-    dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
-    chmod 0600 "$swappart" || true;
-    /sbin/mkswap -U "$swapuuid" "$swappart" || echo "mkswap exit code $? is suppressed";
-fi
-
-echo "==> Final sync to disk..."
-sync
-sleep 5
-sync
-sync
 
 echo "==> Cleanup complete."
