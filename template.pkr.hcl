@@ -427,7 +427,7 @@ build {
   # Provisioning steps (common logic)
   provisioner "shell" {
     # Wait for SSH to be ready after OS install
-    pause_before = "10s"
+    pause_before = "5s"
     inline = [
         "echo 'SSH is up. Starting provisioning...'"
     ]
@@ -483,11 +483,11 @@ build {
   
   # --- Force reboot ---
   provisioner "shell" {
-    pause_before = "10s"
-    pause_after = "10s"
+    pause_before = "5s"
+    pause_after = "5s"
     inline = [
       "echo 'Rebooting in background...'",
-      "sleep 2 && nohup ${var.reboot_command}  && sleep 100"
+      "nohup ${var.reboot_command}  && sleep 100"
     ]
     expect_disconnect = true
     timeout         = "30m"
@@ -505,11 +505,11 @@ build {
   # --- Force reboot ---
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
-    pause_before = "10s"
-    pause_after = "10s"
+    pause_before = "5s"
+    pause_after = "5s"
     inline = [
       "echo 'Rebooting in background...'",
-      "sleep 2 && nohup ${var.reboot_command} && sleep 100"
+      "nohup ${var.reboot_command} && sleep 100"
     ]
     expect_disconnect = true
     timeout         = "30m"
