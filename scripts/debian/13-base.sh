@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-echo "==> Running provision script (Debian)..."
+echo "==> Running provision script (Debian 13)..."
 
 # To allow for automated installs, we disable interactive configuration steps.
 export DEBIAN_FRONTEND=noninteractive

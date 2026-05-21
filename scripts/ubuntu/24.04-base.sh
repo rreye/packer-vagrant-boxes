@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-echo "==> Running provision script (Ubuntu)..."
+echo "==> Running provision script (Ubuntu 24.04)..."
 
 # To allow for automated installs, we disable interactive configuration steps.
 export DEBIAN_FRONTEND=noninteractive

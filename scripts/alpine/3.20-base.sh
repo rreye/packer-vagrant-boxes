@@ -1,6 +1,6 @@
 #!/bin/sh -eux
 
-echo "==> Running provision script (Alpine)..."
+echo "==> Running provision script (Alpine 3.20)..."
 
 # Install common tools
 apk cache clean
