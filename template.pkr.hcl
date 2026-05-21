@@ -580,6 +580,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
     compression_level    = 9
     keep_input_artifact  = false
+    provider_override    = "vmware"
   }
   post-processor "shell-local" {
     only   = ["vagrant.vmware"]
