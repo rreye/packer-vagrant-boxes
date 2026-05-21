@@ -323,7 +323,7 @@ source "qemu" "amd64" {
   disk_discard       = "unmap"  
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64
-  headless           = false
+  headless           = true
   use_default_display = true
   qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
@@ -355,7 +355,8 @@ source "qemu" "arm64" {
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64
   headless           = false
-  use_default_display = true
+  use_default_display = false
+  display            = "cocoa"
   qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
   machine_type       = "virt"
