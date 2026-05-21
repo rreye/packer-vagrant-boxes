@@ -3,7 +3,7 @@
 packer {
   required_plugins {
     virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
-    vmware     = { version = "= 1.2.0", source = "github.com/hashicorp/vmware" }
+    vmware     = { version = "= 2.1.2", source = "github.com/hashicorp/vmware" }
     qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
     utm        = { version = ">= v4.0.0", source  = "github.com/naveenrajm7/utm"}
     vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
@@ -323,7 +323,7 @@ source "qemu" "amd64" {
   disk_discard       = "unmap"  
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64 runner
-  headless           = true
+  headless           = false
   use_default_display = true
   qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
@@ -351,7 +351,7 @@ source "qemu" "arm64" {
   disk_discard       = "unmap"  
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64 runner
-  headless           = true
+  headless           = false
   use_default_display = true
   qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
