@@ -320,7 +320,9 @@ source "qemu" "amd64" {
   disk_size          = "${var.disk_size}M" # Qemu needs unit
   disk_compression   = true
   disk_detect_zeroes = "unmap"
-  disk_discard       = "unmap"  
+  disk_discard       = "unmap"
+  disk_interface     = "virtio"
+  disk_cache         = "unsafe"
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64
   headless           = true
@@ -351,7 +353,9 @@ source "qemu" "arm64" {
   disk_size          = "${var.disk_size}M"
   disk_compression   = true
   disk_detect_zeroes = "unmap"
-  disk_discard       = "unmap"  
+  disk_discard       = "unmap"
+  disk_interface     = "virtio"
+  disk_cache         = "unsafe"
   format             = "qcow2"
   accelerator        = "hvf" # Use HVF on macOS arm64
   headless           = false
