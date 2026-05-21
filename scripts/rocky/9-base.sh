@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-echo "==> Running provision script (Rocky)..."
+echo "==> Running provision script (Rocky 9)..."
 
 # Install common tools (some might be installed by Kickstart already)
 dnf clean all
