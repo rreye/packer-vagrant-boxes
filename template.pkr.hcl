@@ -318,17 +318,20 @@ source "qemu" "amd64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = "${var.disk_size}M" # Qemu needs unit
-  disk_compression   = "true"
+  disk_compression   = true
   disk_detect_zeroes = "unmap"
   disk_discard       = "unmap"  
   format             = "qcow2"
-  accelerator        = "kvm" # Use KVM on Linux amd64 runner
+  accelerator        = "kvm" # Use KVM on Linux amd64
   headless           = false
   use_default_display = true
   qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
   machine_type       = "q35"
   cpu_model          = "host"
+  efi_boot           = false
+  efi_firmware_code  = "/usr/share/edk2/ovmf/OVMF_CODE.fd"
+  efi_firmware_vars  = "/usr/share/edk2/ovmf/OVMF_VARS.fd"
 }
 
 source "qemu" "arm64" {
@@ -346,17 +349,20 @@ source "qemu" "arm64" {
   cpus               = var.cpus
   memory             = var.memory
   disk_size          = "${var.disk_size}M"
-  disk_compression   = "true"
+  disk_compression   = true
   disk_detect_zeroes = "unmap"
   disk_discard       = "unmap"  
   format             = "qcow2"
-  accelerator        = "hvf" # Use HVF on macOS arm64 runner
+  accelerator        = "hvf" # Use HVF on macOS arm64
   headless           = false
   use_default_display = true
   qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
   machine_type       = "virt"
-  cpu_model          = "cortex-a76"
+  cpu_model          = "host"
+  efi_boot           = true
+  efi_firmware_code  = "/opt/homebrew/share/qemu/edk2-aarch64-code.fd"
+  efi_firmware_vars  = "/opt/homebrew/share/qemu/edk2-arm-vars.fd"
 }
 
 # --- UTM ---
