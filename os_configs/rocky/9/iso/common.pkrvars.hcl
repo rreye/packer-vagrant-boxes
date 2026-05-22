@@ -23,6 +23,7 @@ boot_command_arm64 = [
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
+    " console=tty0", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
     "<wait><f10>" # Start boot
 ]
 

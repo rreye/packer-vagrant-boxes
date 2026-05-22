@@ -44,6 +44,7 @@ boot_command_arm64 = [
   "debconf/frontend=noninteractive ",
   "console-setup/ask_detect=false ",
   "net.ifnames=0 biosdevname=0 ",
+  "console=tty0 ", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
   "--- <enter>",  
   "<wait>",
   "initrd /install.a64/initrd.gz<enter>",

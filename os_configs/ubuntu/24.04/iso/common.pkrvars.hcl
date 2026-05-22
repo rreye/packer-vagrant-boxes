@@ -12,8 +12,8 @@ boot_command_amd64 = [
   "<wait2s>",
   "c<wait>",     # Select boot command prompt
   "linux /casper/vmlinuz autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ ",
-  "net.ifnames=0 biosdevname=0<enter><wait>", # Consistent network names
-  "<wait2s>",
+  "net.ifnames=0 biosdevname=0", # Consistent network names
+  "<enter><wait2s>"
   "initrd /casper/initrd<enter><wait>",
   "boot<enter><wait>"
 ]
@@ -22,8 +22,9 @@ boot_command_arm64 = [
   "<wait2s>",
   "c<wait>",     # Select boot command prompt
   "linux /casper/vmlinuz autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ ",
-  "net.ifnames=0 biosdevname=0<enter><wait>", # Consistent network names
-  "<wait2s>",
+  "net.ifnames=0 biosdevname=0 ", # Consistent network names
+  "console=tty0 ", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
+  "<enter><wait2s>"
   "initrd /casper/initrd<enter><wait>",
   "boot<enter><wait>"
 ]

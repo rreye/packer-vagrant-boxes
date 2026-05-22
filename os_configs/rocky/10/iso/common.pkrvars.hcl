@@ -9,13 +9,11 @@ guest_os_type_vmware_arm64 = "arm-rhel10-64"
 # Kickstart configuration
 http_directory = "http"
 boot_command_amd64 = [
-    "<wait2s><up><wait>", # Interrupt bootloader
-    "e",
-    "<wait><down><down><end><wait>",
+    "<wait2s><up><wait><tab>", # Interrupt bootloader
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
-    "<wait><f10>" # Start boot
+    "<enter><wait>" # Start boot
 ]
 
 boot_command_arm64 = [
@@ -25,6 +23,7 @@ boot_command_arm64 = [
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
+    " console=tty0", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
     "<wait><f10>" # Start boot
 ]
 
