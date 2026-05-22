@@ -326,14 +326,13 @@ source "qemu" "amd64" {
   format             = "qcow2"
   accelerator        = "kvm" # Use KVM on Linux amd64
   headless           = true
-  use_default_display = true
+  use_default_display = false
+  display            = "vnc=127.0.0.1:1"
   qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
   machine_type       = "q35"
   cpu_model          = "host"
   efi_boot           = false
-  efi_firmware_code  = "/usr/share/edk2/ovmf/OVMF_CODE.fd"
-  efi_firmware_vars  = "/usr/share/edk2/ovmf/OVMF_VARS.fd"
 }
 
 source "qemu" "arm64" {
