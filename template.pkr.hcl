@@ -131,8 +131,6 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
-  # Select VMware guest OS type based on build_arch
-  guest_os_type_vmware = var.build_arch == "arm64" ? var.guest_os_type_vmware_arm64 : var.guest_os_type_vmware_amd64
 }
 
 # --- 3. Builders (Sources) ---
@@ -241,7 +239,7 @@ source "vagrant" "vmware" {
 
 source "vmware-iso" "amd64" {
   firmware           = "bios"
-  guest_os_type      = local.guest_os_type_vmware
+  guest_os_type      = var.guest_os_type_vmware_amd64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
@@ -266,7 +264,7 @@ source "vmware-iso" "amd64" {
 
 source "vmware-iso" "arm64" {
   firmware           = "efi"
-  guest_os_type      = local.guest_os_type_vmware
+  guest_os_type      = var.guest_os_type_vmware_arm64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
