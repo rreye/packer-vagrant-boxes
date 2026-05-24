@@ -322,12 +322,12 @@ source "qemu" "amd64" {
   disk_interface     = "virtio"
   disk_cache         = "unsafe"
   format             = "qcow2"
-  accelerator        = "kvm" # Use KVM on Linux amd64
   headless           = true
   use_default_display = false
-  display            = "vnc=127.0.0.1:1"
-  qemu_binary        = "qemu-system-x86_64"
   # AMD64 specific settings
+  qemu_binary        = "qemu-system-x86_64"
+  accelerator        = "kvm" # Use KVM on Linux amd64
+  display            = "vnc=127.0.0.1:1"
   machine_type       = "q35"
   cpu_model          = "host"
   efi_boot           = false
@@ -354,17 +354,22 @@ source "qemu" "arm64" {
   disk_interface     = "virtio"
   disk_cache         = "unsafe"
   format             = "qcow2"
-  accelerator        = "hvf" # Use HVF on macOS arm64
   headless           = false
   use_default_display = false
-  display            = "cocoa"
-  qemu_binary        = "qemu-system-aarch64"
   # ARM specific settings
+  qemu_binary        = "qemu-system-aarch64"
+  accelerator        = "hvf" # Use HVF on macOS arm64
+  display            = "cocoa"
   machine_type       = "virt"
   cpu_model          = "host"
   efi_boot           = true
   efi_firmware_code  = "/opt/homebrew/share/qemu/edk2-aarch64-code.fd"
   efi_firmware_vars  = "/opt/homebrew/share/qemu/edk2-arm-vars.fd"
+  qemuargs = [
+        ["-device", "virtio-gpu-pci"],
+        ["-device", "qemu-xhci"],
+        ["-device", "driver=usb-kbd"],
+  ]
 }
 
 # --- UTM ---
