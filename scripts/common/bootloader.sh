@@ -26,6 +26,19 @@ set_grub_timeout() {
   echo "Bootloader timeout set to ${NEW_TIMEOUT}s."
 }
 
+set_grub_timeout_minimal() {
+  FILE="$1"
+  if grep -q "^GRUB_TIMEOUT=" "$FILE"; then
+    sed -i "s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=${NEW_TIMEOUT}/" "$FILE"
+  else
+    echo "GRUB_TIMEOUT=${NEW_TIMEOUT}" >> "$FILE"
+  fi
+  
+  sed -i '/^GRUB_TIMEOUT_STYLE=/d' "$FILE"
+
+  echo "Bootloader timeout set to ${NEW_TIMEOUT}s (minimal)."
+}
+
 generate_grub_cfg_rhel() {
   if [ -d /sys/firmware/efi ]; then
     # EFI
@@ -92,7 +105,7 @@ case "$DISTRO_ID" in
         fi
     elif [ -f /etc/default/grub ]; then
       	echo "   (GRUB)"
-      	set_grub_timeout /etc/default/grub
+      	set_grub_timeout_minimal /etc/default/grub
       	disable_predictable_netnames /etc/default/grub
       	grub-mkconfig -o /boot/grub/grub.cfg
     elif [ -f /etc/update-extlinux.conf ]; then
