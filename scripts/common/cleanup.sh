@@ -30,10 +30,8 @@ elif [ -f "/usr/bin/apt-get" ]; then
 
 	# Exclude the files we don't need w/o uninstalling linux-firmware
 	cat <<_EOF_ | cat >> /etc/dpkg/dpkg.cfg.d/excludes
-#BENTO-BEGIN
 path-exclude=/lib/firmware/*
 path-exclude=/usr/share/doc/linux-firmware/*
-#BENTO-END
 _EOF_
 	# Remove linux firmware
 	rm -rf /lib/firmware/*
@@ -85,7 +83,6 @@ sed -i '/127.0.1.1.*packer-*/d' /etc/hosts
 if [ -f "/etc/machine-id" ]; then
 	truncate -s 0 /etc/machine-id
 fi
-
 if [ -f "/var/lib/dbus/machine-id" ]; then
 	rm -f /var/lib/dbus/machine-id
 	ln -s /etc/machine-id /var/lib/dbus/machine-id
