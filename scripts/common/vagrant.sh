@@ -2,34 +2,35 @@
 
 echo "==> Configuring Vagrant user..."
 
-HOME_DIR=/home/vagrant
+echo "==> Privilege escalation (sudo/doas)"
 
-if [ -f /etc/alpine-release ]; then
-    # --- Alpine (doas) ---
-    echo "==> Detected Alpine. Configuring doas..."
+CONFIGURED=0
+
+# --- doas ---
+if command -v doas > /dev/null 2>&1 || [ -d /etc/doas.d ]; then
+    echo "  ==> 'doas' environment detected. Configuring /etc/doas.d/vagrant.conf..."    
+    mkdir -p /etc/doas.d    
+    echo "permit nopass vagrant as root" > /etc/doas.d/vagrant.conf
+    chmod 0644 /etc/doas.d/vagrant.conf
+    chown root:root /etc/doas.d/vagrant.conf
+    CONFIGURED=1
+fi
+
+# --- sudo ---
+if command -v sudo > /dev/null 2>&1 || [ -d /etc/sudoers.d ]; then
+    echo "  ==> 'sudo' environment detected. Configuring /etc/sudoers.d/vagrant..."
     
-    if ! command -v doas > /dev/null 2>&1; then
-        echo "ERROR: 'doas' command not found."
-        echo "Please ensure 'doas' is installed in your OS provision.sh (e.g., 'apk add doas')"
-        exit 1
-    fi
-    
-    # "permit nopass vagrant" permite al usuario vagrant ejecutar todo como root sin pass.
-    echo "permit nopass vagrant" > /etc/doas.conf
-    chmod 0400 /etc/doas.conf
-    chown root:root /etc/doas.conf
-else
-    # --- Sudo (Debian, Ubuntu, RHEL, SUSE) ---
-    echo "==> Detected sudo-based system. Configuring /etc/sudoers.d/vagrant..."
-    
-    if [ ! -d /etc/sudoers.d/ ]; then
-        echo "ERROR: /etc/sudoers.d/ directory not found."
-        echo "Please ensure 'sudo' is installed."
-        exit 1
-    fi
-    
+    mkdir -p /etc/sudoers.d    
     echo "vagrant ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/vagrant
-    chmod 0440 /etc/sudoers.d/vagrant
+    chmod 0640 /etc/sudoers.d/vagrant
+    chown root:root /etc/sudoers.d/vagrant
+    CONFIGURED=1
+fi
+
+# --- Verificación ---
+if [ "$CONFIGURED" -eq 0 ]; then
+    echo "ERROR: Neither 'sudo' nor 'doas' environments were detected on this system."
+    exit 1
 fi
 
 # Default passwords
@@ -39,6 +40,7 @@ passwd -d root
 echo 'root:vagrant' | chpasswd
 
 # Install Vagrant SSH key
+HOME_DIR=/home/vagrant
 mkdir -p $HOME_DIR/.ssh
 pubkey_url="https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub"
 
