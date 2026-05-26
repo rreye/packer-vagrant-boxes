@@ -83,7 +83,7 @@ case "$DISTRO_ID" in
     echo "-> Alpine"
     if [ -f /boot/syslinux/syslinux.cfg ]; then
       	echo "   (syslinux)"
-      	# syslinux usa décimas de segundo
+      	# syslinux nativo usa décimas de segundo
       	SYSL_TIMEOUT=$((NEW_TIMEOUT * 10))
       	sed -i "s/^TIMEOUT.*/TIMEOUT ${SYSL_TIMEOUT}/" /boot/syslinux/syslinux.cfg
       	# Desactivar red predecible en la línea APPEND de syslinux
@@ -95,6 +95,17 @@ case "$DISTRO_ID" in
       	set_grub_timeout /etc/default/grub
       	disable_predictable_netnames /etc/default/grub
       	grub-mkconfig -o /boot/grub/grub.cfg
+    elif [ -f /etc/update-extlinux.conf ]; then
+        echo "   (extlinux)"
+        # Wrapper de Alpine usa segundos
+        sed -i "s/^timeout=.*/timeout=${NEW_TIMEOUT}/" /etc/update-extlinux.conf
+        
+        # Inyectar los parámetros de red en default_kernel_opts
+        if ! grep -q "net.ifnames=0" /etc/update-extlinux.conf; then
+            sed -i 's/^default_kernel_opts="\(.*\)"/default_kernel_opts="\1 net.ifnames=0 biosdevname=0"/' /etc/update-extlinux.conf
+        fi
+        # Comando obligatorio de Alpine para regenerar /boot/extlinux.conf
+        update-extlinux
     else
     	echo "   (efibootmgr/aboot or unknown bootloader)"
       	echo "   No GRUB/syslinux config found. This is normal for fast-boot EFI."
