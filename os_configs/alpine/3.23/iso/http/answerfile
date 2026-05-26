@@ -1,0 +1,42 @@
+# Basic Alpine answerfile for Vagrant
+# See setup-alpine documentation for more options
+
+# Keyboard Layout
+KEYMAPOPTS="es es"
+
+# Hostname
+HOSTNAMEOPTS=alpine
+
+# Network interface
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+"
+
+# DNS
+DNSOPTS=""
+
+# Timezone
+TIMEZONEOPTS="UTC"
+
+# Proxy
+PROXYOPTS=none
+
+# Alpine Mirror (auto-detect)
+APKREPOSOPTS="-1 -c"
+
+# SSH Server (OpenSSH)
+SSHDOPTS=openssh
+
+# NTP Client (chrony)
+NTPOPTS=chrony
+
+# Disk setup
+FIRST_DISK=$(ls /sys/class/block | grep -vE '^(loop|ram|sr)' | head -n 1)
+DISKOPTS="-m sys /dev/${FIRST_DISK}"
+
+# Setup user
+USEROPTS="-a -u vagrant"
+USERSSHKEY="https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub"
