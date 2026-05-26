@@ -102,14 +102,14 @@ rm -rf /root/.viminfo
 if [ -f /home/vagrant/.bash_history ]; then
   rm -f /home/vagrant/.bash_history
 fi
-if [ -f /root/vagrant/.bash_history ]; then
+if [ -f /root/.bash_history ]; then
   rm -f /root/.bash_history
 fi
 # Clear ash history (Default Alpine shell)
 if [ -f /home/vagrant/.ash_history ]; then
   rm -f /home/vagrant/.ash_history
 fi
-if [ -f /root/vagrant/.ash_history ]; then
+if [ -f /root/.ash_history ]; then
   rm -f /root/.ash_history
 fi
 
