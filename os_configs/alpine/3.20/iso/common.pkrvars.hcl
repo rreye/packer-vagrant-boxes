@@ -34,9 +34,9 @@ boot_command_arm64 = [
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
     "setup-apkrepos -1c<enter><wait3s>",
     "apk add sudo<enter><wait>",
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fix_efiboot.sh<enter><wait>", # Download fixefiboot script
     "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fix_efiboot.sh<enter><wait>", # Download fix_efiboot script
-    "sh fix_efiboot.sh<enter><wait3s>",
+    "sh fixefiboot.sh<enter><wait3s>",
     "reboot<enter>"
 ]
 
