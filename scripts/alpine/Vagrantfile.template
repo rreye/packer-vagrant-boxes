@@ -1,0 +1,4 @@
+Vagrant.configure("2") do |config|
+  # Force this box to use rsync for the default folder
+  config.vm.synced_folder ".", "/vagrant", type: "rsync"
+end

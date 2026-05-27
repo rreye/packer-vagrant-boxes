@@ -576,6 +576,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
     compression_level    = 9
     keep_input_artifact  = false
+    vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/scripts/alpine/Vagrantfile.template" : null
   }
   post-processor "shell-local" {
     only   = ["vagrant.virtualbox"]
