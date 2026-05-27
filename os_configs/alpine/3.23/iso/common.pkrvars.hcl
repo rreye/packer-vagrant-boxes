@@ -32,11 +32,11 @@ boot_command_arm64 = [
     "echo \"root:vagrant\" | chpasswd<enter><wait>",
     "mkdir -p /etc/ssh/sshd_config.d<enter>",
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
-    "setup-apkrepos -1c<enter><wait2s>",
-    "apk add sudo efibootmgr<enter><wait>",
-    "efibootmgr -n 0001<enter><wait>",
-    "efibootmgr -o 0001<enter><wait>",
+    "setup-apkrepos -1c<enter><wait3s>",
+    "apk add sudo<enter><wait>",
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fixefiboot.sh<enter><wait>", # Download fixefiboot script
     "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
+    "sh fixefiboot.sh<enter><wait3s>",
     "reboot<enter>"
 ]
 
