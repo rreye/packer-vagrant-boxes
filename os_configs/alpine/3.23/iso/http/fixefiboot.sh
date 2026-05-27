@@ -10,8 +10,8 @@ echo "Currently booted from ISO (CD/DVD):: $CURRENT_BOOT"
 # - El dispositivo actual (-v "Boot${CURRENT_BOOT}")
 # - El menú de la BIOS (-v "UiApp")
 # - La consola EFI (-v "Shell")
-# - Arranque por red (-v "PXE")
-BOOT_ID=$(efibootmgr | grep -E '^Boot[0-9A-Fa-f]{4}' | grep -i -v -E "Boot${CURRENT_BOOT}|UiApp|Shell|PXE" | head -n 1 | cut -c 5-8)
+# - Arranque por red (-v "PXE" y -v "Network")
+BOOT_ID=$(efibootmgr | grep -E '^Boot[0-9A-Fa-f]{4}' | grep -i -v -E "Boot${CURRENT_BOOT}|UiApp|Shell|PXE|Network" | head -n 1 | cut -c 5-8)
 
 if [ -n "$BOOT_ID" ]; then
     echo "-> Hard drive detected in the EFI entry: $BOOT_ID"
