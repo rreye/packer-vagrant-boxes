@@ -290,7 +290,7 @@ source "vmware-iso" "arm64" {
 source "vagrant" "libvirt" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
-  provider     = "libvirt" # This will use QEMU on the runner
+  provider     = var.build_arch == "arm64" ? "qemu" : "libvirt"
   template     = "${path.root}/Vagrantfile.template"
   skip_add     = false
   add_force    = true
@@ -603,13 +603,14 @@ build {
   }
   
   # -----------------------
-  # Libvirt (QEMU)
+  # QEMU / Libvirt
   # -----------------------
   post-processor "vagrant" {
     only     = ["qemu.amd64", "qemu.arm64"]
-    output = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
+    output = "${var.box_name}-${var.build_arch}-${var.box_version}-${var.build_arch == "arm64" ? "qemu" : "libvirt"}.box"
     compression_level    = 9
     keep_input_artifact  = false
+    provider_override   = var.build_arch == "arm64" ? "qemu" : null
   }
   post-processor "shell-local" {
     only   = ["vagrant.libvirt"]
