@@ -578,6 +578,7 @@ build {
     keep_input_artifact  = false
     vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/scripts/alpine/Vagrantfile.template" : null
   }
+  
   post-processor "shell-local" {
     only   = ["vagrant.virtualbox"]
     inline = [
@@ -595,6 +596,7 @@ build {
     keep_input_artifact  = false
     provider_override    = "vmware"
   }
+  
   post-processor "shell-local" {
     only   = ["vagrant.vmware"]
     inline = [
@@ -605,13 +607,38 @@ build {
   # -----------------------
   # QEMU / Libvirt
   # -----------------------
-  post-processor "vagrant" {
-    only     = ["qemu.amd64", "qemu.arm64"]
-    output = "${var.box_name}-${var.build_arch}-${var.box_version}-${var.build_arch == "arm64" ? "qemu" : "libvirt"}.box"
-    compression_level    = 9
-    keep_input_artifact  = false
-    provider_override   = var.build_arch == "arm64" ? "qemu" : null
+  # post-processors (plural) creates a sequential pipeline
+  post-processors {
+    # Pack both architectures using 'libvirt' (the only one Packer accepts without complaint)
+    post-processor "vagrant" {
+      only                = ["qemu.amd64", "qemu.arm64"]
+      output              = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
+      compression_level   = 9
+      keep_input_artifact = false
+    }
+
+    # Open the box, change the provider to qemu, repackage it with the correct name, and clean out the junk.
+    post-processor "shell-local" {
+      only   = ["qemu.arm64"]
+      inline = [
+        "echo '=== [ARM64] Converting box from libvirt to qemu ==='",
+        
+        "TMP_DIR=tmp_qemu_${var.box_name}_${var.build_arch}",
+        "mkdir -p $TMP_DIR",
+        "tar -xzf ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C $TMP_DIR",
+        "sed -i.bak 's/\"libvirt\"/\"qemu\"/g' $TMP_DIR/metadata.json",
+        "rm $TMP_DIR/metadata.json.bak",
+        
+        "cd $TMP_DIR && tar -czf ../${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ./*",
+        "cd ..",
+        
+        "rm -rf $TMP_DIR ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box",
+        
+        "echo '=== Done: ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ==='"
+      ]
+    }
   }
+  
   post-processor "shell-local" {
     only   = ["vagrant.libvirt"]
     inline = [
@@ -628,6 +655,7 @@ build {
     compression_level    = 9
     keep_input_artifact  = false
   }
+  
   post-processor "shell-local" {
     only   = ["vagrant.utm"]
     inline = [
