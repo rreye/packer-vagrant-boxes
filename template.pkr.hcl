@@ -218,7 +218,6 @@ source "virtualbox-iso" "arm64" {
     ["modifyvm", "{{.Name}}", "--usb-ehci", "off"],
     ["modifyvm", "{{.Name}}", "--usb-xhci", "on"],
     ["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
-    ["modifyvm", "{{.Name}}", "--graphicscontroller", "qemuramfb"],
   ]
 }
 
