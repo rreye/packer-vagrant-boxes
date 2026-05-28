@@ -132,15 +132,6 @@ variable "build_utm" {
   type    = bool
   default = false # Por defecto es falso, protegiendo a VirtualBox/QEMU
 }
-variable "validate_utm" {
-  type    = string
-  default = "ok"
-  
-  validation {
-    condition     = var.build_utm ? var.utm_bridge_ip != "" : true
-    error_message = "\n\n[ERROR]: For the UTM provider, you must pass the macOS bridge IP address.\nExample: -var \"build_utm=true\" -var \"utm_bridge_ip=192.168.64.1\""
-  }
-}
 
 # --- 2. Local Variables ---
 # (Helper variables derived from input)
@@ -150,6 +141,7 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
+  validate_utm = var.build_utm && var.utm_bridge_ip == "" ? regex("CRITICAL_ERROR_DEFINE_BRIDGE_IP_utm_bridge_ip", "") : "OK"
 }
 
 # --- 3. Builders (Sources) ---
