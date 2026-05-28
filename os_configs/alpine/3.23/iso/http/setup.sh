@@ -12,13 +12,12 @@ echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/root.conf
 setup-apkrepos -1c
 apk add sudo
 wget "http://${PACKER_IP}:${PACKER_PORT}/answerfile" -O answerfile
-yes | setup-alpine -e -f answerfile
-
-# Setup eth1 (only for UTM)
+# Setup eth1 before installing (only for UTM)
 if [ "$UTM" = "utm_mode" ]; then
   echo "=> [UTM MODE] Setup eth1"
   echo -e "\nauto eth1\niface eth1 inet dhcp" >> /etc/network/interfaces
 fi
+yes | setup-alpine -e -f answerfile
 
 # Fix EFI boot (only ARM64)
 if [ "$ARCH" = "aarch64" ]; then

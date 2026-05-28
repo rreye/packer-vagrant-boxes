@@ -14,8 +14,8 @@ boot_command_amd64 = [
     "root<enter>",                # Login as root (no password initially)
     "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
     "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
-    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter>",	# Run setup
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",		# Download setup script
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter><wait2s>",	# Run setup
     "reboot<enter>"
 ]
 
@@ -23,8 +23,8 @@ boot_command_arm64 = [
     "root<enter>",                # Login as root (no password initially)
     "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
     "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
-    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter>",	# Run setup
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",		# Download setup script
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter><wait2s>",	# Run setup
     "reboot<enter>"
 ]
 
