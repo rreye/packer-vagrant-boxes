@@ -398,7 +398,7 @@ source "utm-iso" "arm64" {
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
   boot_command = [
-    for cmd in var.boot_command : 
+    for cmd in var.boot_command_arm64 : 
     replace(
       cmd, 
       "{{ .HTTPIP }}", 
