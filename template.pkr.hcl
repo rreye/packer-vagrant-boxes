@@ -128,14 +128,6 @@ variable "utm_bridge_ip" {
   type        = string
   default     = ""
   description = "IP address of your macOS bridge100 interface (e.g., 192.168.64.1)"
-validation {
-    condition     = var.is_utm ? var.utm_bridge_ip != "" : true
-    error_message = "\n\n[UTM ERROR]: For the UTM provider, it is mandatory to configure 'utm_bridge_ip' with the IP address of bridge100.\nExample: packer build -var "utm_bridge_ip=192.168.64.1" ..." 
-}
-variable "is_utm" {
-  type        = bool
-  default     = false
-  description = "Activate the specific requirements and validations for the UTM provider"
 }
 
 # --- 2. Local Variables ---
@@ -405,7 +397,14 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command = [for cmd in var.boot_command : replace(cmd, "{{ .HTTPIP }}", var.utm_bridge_ip)]
+  boot_command = [
+    for cmd in var.boot_command : 
+    replace(
+      cmd, 
+      "{{ .HTTPIP }}", 
+      var.utm_bridge_ip == "" ? "ERROR: configure utm_bridge_ip" : var.utm_bridge_ip
+    )
+  ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
