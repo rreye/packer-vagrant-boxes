@@ -125,9 +125,21 @@ variable "guest_os_type_vmware_arm64" {
 
 # --- 1. UTM variables (provider specific) ---
 variable "utm_bridge_ip" {
-  type        = string
-  default     = ""
-  description = "IP address of your macOS bridge100 interface (e.g., 192.168.64.1)"
+  type    = string
+  default = ""
+}
+variable "build_utm" {
+  type    = bool
+  default = false # Por defecto es falso, protegiendo a VirtualBox/QEMU
+}
+variable "validate_utm" {
+  type    = string
+  default = "ok"
+  
+  validation {
+    condition     = var.build_utm ? var.utm_bridge_ip != "" : true
+    error_message = "\n\n[ERROR]: For the UTM provider, you must pass the macOS bridge IP address.\nExample: -var \"build_utm=true\" -var \"utm_bridge_ip=192.168.64.1\""
+  }
 }
 
 # --- 2. Local Variables ---
@@ -397,7 +409,7 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command = var.utm_bridge_ip == "" ? { error = "Missing IP for bridge" }["packer_build -var_utm_bridge_ip=X"] : [
+  boot_command = [
     for cmd in var.boot_command_arm64 : 
     replace(cmd, "{{ .HTTPIP }}", var.utm_bridge_ip)
   ]
