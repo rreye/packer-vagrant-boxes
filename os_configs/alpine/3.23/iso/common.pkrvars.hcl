@@ -5,6 +5,8 @@ guest_os_type_vbox_amd64   = "Linux_64"    # Generic Linux
 guest_os_type_vbox_arm64   = "Linux_arm64" # Generic Linux
 guest_os_type_vmware_amd64 = "other-64"
 guest_os_type_vmware_arm64 = "arm-other-64"
+# UTM
+utm_net_string = "utm_mode"
 
 # Alpine Answer File setup
 http_directory = "http"
@@ -34,9 +36,9 @@ boot_command_arm64 = [
     "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
     "setup-apkrepos -1c<enter><wait3s>",
     "apk add sudo<enter><wait>",
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fixefiboot.sh<enter><wait>", # Download fixefiboot script
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fix.sh<enter><wait>", # Download fixefiboot script
     "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
-    "sh fixefiboot.sh<enter><wait3s>",
+    "sh fix.sh <UTM_INJECT><enter><wait3s>",
     "reboot<enter>"
 ]
 

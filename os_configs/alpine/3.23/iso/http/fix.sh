@@ -22,3 +22,7 @@ else
     echo "WARNING: No alternative CD-ROM input was found"
     efibootmgr
 fi
+
+if [ "$1" = "utm_mode" ]; then
+  echo -e "\nauto eth1\niface eth1 inet dhcp" >> /etc/network/interfaces
+fi

@@ -124,13 +124,10 @@ variable "guest_os_type_vmware_arm64" {
 }
 
 # --- 1. UTM variables (provider specific) ---
-variable "utm_bridge_ip" {
-  type    = string
-  default = ""
-}
-variable "build_utm" {
-  type    = bool
-  default = false
+variable "utm_net_string" {
+  type        = string
+  default     = ""
+  description = "Command or parameter that will be injected only when using the UTM provider"
 }
 
 # --- 2. Local Variables ---
@@ -141,8 +138,6 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
-  # Dirty workaround to check if utm_bridge_ip is defined
-  validate_utm = timeadd("2026-05-28T00:00:00Z", var.build_utm && var.utm_bridge_ip == "" ? "CRITICAL_ERROR_DEFINE_BRIDGE_IP_WITH_utm_bridge_ip" : "0s")
 }
 
 # --- 3. Builders (Sources) ---
@@ -402,9 +397,9 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command = [
-    for cmd in var.boot_command_arm64 : 
-    replace(cmd, "{{ .HTTPIP }}", var.utm_bridge_ip)
+  boot_command       = [
+    for cmd in var.boot_command : 
+    replace(cmd, "<UTM_INJECT>", var.utm_net_string)
   ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
