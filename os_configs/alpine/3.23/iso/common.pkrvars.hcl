@@ -11,34 +11,20 @@ utm_net_string = "utm_mode"
 # Alpine Answer File setup
 http_directory = "http"
 boot_command_amd64 = [
-    # Boot sequence for Alpine setup with answerfile via HTTP
     "root<enter>",                # Login as root (no password initially)
-    "ifconfig eth0 up<enter><wait>",
-    "udhcpc -i eth0<enter><wait2s>",	# Configure network via DHCP
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answerfile<enter><wait>", # Download answerfile
-    "echo \"root:vagrant\" | chpasswd<enter><wait>",
-    "mkdir -p /etc/ssh/sshd_config.d<enter>",
-    "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
-    "setup-apkrepos -1c<enter><wait2s>",
-    "apk add sudo<enter><wait>",
-    "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
+    "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
+    "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter>"	# Run setup
     "reboot<enter>"
 ]
 
 boot_command_arm64 = [
-    # Boot sequence for Alpine setup with answerfile via HTTP
     "root<enter>",                # Login as root (no password initially)
-    "ifconfig eth0 up<enter><wait>",
-    "udhcpc -i eth0<enter><wait2s>",	# Configure network via DHCP
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answerfile<enter><wait>", # Download answerfile
-    "echo \"root:vagrant\" | chpasswd<enter><wait>",
-    "mkdir -p /etc/ssh/sshd_config.d<enter>",
-    "echo \"PermitRootLogin yes\" > /etc/ssh/sshd_config.d/root.conf<enter>",
-    "setup-apkrepos -1c<enter><wait3s>",
-    "apk add sudo<enter><wait>",
-    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/fix.sh<enter><wait>", # Download fixefiboot script
-    "yes | setup-alpine -e -f answerfile<enter><wait45s>", 	# Run setup with answerfile
-    "sh fix.sh <UTM_INJECT><enter><wait3s>",
+    "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
+    "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
+    "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }} <UTM_INJECT><enter>"	# Run setup
     "reboot<enter>"
 ]
 
