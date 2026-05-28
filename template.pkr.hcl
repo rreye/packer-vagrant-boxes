@@ -130,7 +130,7 @@ variable "utm_bridge_ip" {
 }
 variable "build_utm" {
   type    = bool
-  default = false # Por defecto es falso, protegiendo a VirtualBox/QEMU
+  default = false
 }
 
 # --- 2. Local Variables ---
@@ -141,7 +141,8 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
-  validate_utm = var.build_utm && var.utm_bridge_ip == "" ? regex("CRITICAL_ERROR_DEFINE_BRIDGE_IP_utm_bridge_ip", "") : "OK"
+  # Workaround to check if utm_bridge_ip is defined
+  validate_utm = var.build_utm && var.utm_bridge_ip == "" ? tonumber("CRITICAL_ERROR_DEFINE_BRIDGE_IP_WITH_utm_bridge_ip") : 0
 }
 
 # --- 3. Builders (Sources) ---
