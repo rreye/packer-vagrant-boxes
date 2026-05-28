@@ -141,8 +141,8 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
-  # Workaround to check if utm_bridge_ip is defined
-  validate_utm = var.build_utm && var.utm_bridge_ip == "" ? tonumber("CRITICAL_ERROR_DEFINE_BRIDGE_IP_WITH_utm_bridge_ip") : 0
+  # Dirty workaround to check if utm_bridge_ip is defined
+  validate_utm = timeadd("2026-05-28T00:00:00Z", var.build_utm && var.utm_bridge_ip == "" ? "CRITICAL_ERROR_DEFINE_BRIDGE_IP_WITH_utm_bridge_ip" : "0s")
 }
 
 # --- 3. Builders (Sources) ---
