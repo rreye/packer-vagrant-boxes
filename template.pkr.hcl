@@ -397,13 +397,9 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_directory     = var.http_directory
-  boot_command = [
+  boot_command = var.utm_bridge_ip == "" ? { error = "Missing IP for bridge" }["packer_build -var_utm_bridge_ip=X"] : [
     for cmd in var.boot_command_arm64 : 
-    replace(
-      cmd, 
-      "{{ .HTTPIP }}", 
-      var.utm_bridge_ip == "" ? "ERROR: configure utm_bridge_ip" : var.utm_bridge_ip
-    )
+    replace(cmd, "{{ .HTTPIP }}", var.utm_bridge_ip)
   ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
