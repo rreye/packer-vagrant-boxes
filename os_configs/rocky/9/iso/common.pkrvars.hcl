@@ -8,9 +8,7 @@ guest_os_type_vmware_arm64 = "arm-rhel9-64"
 
 # Kickstart configuration
 boot_command_amd64 = [
-    "<wait2s><up><wait>", # Interrupt bootloader
-    "e",
-    "<wait><down><down><end><wait>",
+    "<wait2s><up><tab>", # Interrupt bootloader
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names

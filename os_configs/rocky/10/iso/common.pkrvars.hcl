@@ -14,7 +14,7 @@ boot_command_amd64 = [
     " inst.text",
     " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg", # Add Kickstart URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
-    "<enter><wait>" # Start boot
+    "<wait><f10>" # Start boot
 ]
 
 boot_command_arm64 = [
