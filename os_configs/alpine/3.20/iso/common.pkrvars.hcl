@@ -14,7 +14,7 @@ boot_command_amd64 = [
     "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
     "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
     "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
-    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }}<enter>"			# Run setup
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }}<enter><wait45s>"		# Run setup
 ]
 
 boot_command_arm64 = [
@@ -22,7 +22,7 @@ boot_command_arm64 = [
     "ifconfig eth0 up; udhcpc -i eth0<enter><wait2s>",
     "ifconfig eth1 up; udhcpc -i eth1<enter><wait2s>",
     "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/setup.sh<enter><wait>",	# Download setup script
-    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }}<enter>"			# Run setup
+    "sh setup.sh {{ .HTTPIP }} {{ .HTTPPort }}<enter><wait45s>"		# Run setup
 ]
 
 # User/password for initial SSH
