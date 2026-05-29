@@ -418,7 +418,7 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = boot_command_arm64
+  boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
