@@ -657,14 +657,13 @@ build {
         "TMP_DIR=tmp_qemu_${var.box_name}_${var.build_arch}",
         "mkdir -p $TMP_DIR",
         "tar -xzf ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C $TMP_DIR",
-        "sed -i 's/\"libvirt\"/\"qemu\"/g' $TMP_DIR/metadata.json",
-        "sed -i 's/:libvirt/:qemu/g' $TMP_DIR/Vagrantfile",
-        "sed -i 's/|libvirt|/|qemu|/g' $TMP_DIR/Vagrantfile",
-        "sed -i '/libvirt.driver/d' $TMP_DIR/Vagrantfile", # Elimina la línea del driver obsoleta
-        
+        "sed -i.bak 's/\"libvirt\"/\"qemu\"/g' $TMP_DIR/metadata.json",
+        "sed -i.bak 's/:libvirt/:qemu/g' $TMP_DIR/Vagrantfile",
+        "sed -i.bak 's/|libvirt|/|qemu|/g' $TMP_DIR/Vagrantfile",
+        "sed -i.bak '/libvirt.driver/d' $TMP_DIR/Vagrantfile", # Elimina la línea del driver obsoleta
+        "rm -f $TMP_DIR/*.bak",
         "cd $TMP_DIR && tar -czf ../${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ./*",
         "cd ..",
-        
         "rm -rf $TMP_DIR ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box",
         
         "echo '=== Done: ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ==='"
