@@ -567,7 +567,7 @@ build {
     only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt", "utm-iso.arm64"]
     execute_command = var.execute_command
     environment_vars = [
-      "PACKER_BUILDER_TYPE=${build.type}"
+      "PACKER_BUILDER_TYPE=${source.type}"
     ]
     scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
     expect_disconnect = true
