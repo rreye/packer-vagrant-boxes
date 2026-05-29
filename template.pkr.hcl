@@ -640,7 +640,6 @@ build {
   # -----------------------
   # post-processors (plural) creates a sequential pipeline
   post-processors {
-    # Pack both architectures using 'libvirt' (the only one Packer accepts without complaint)
     post-processor "vagrant" {
       only                = ["qemu.amd64", "qemu.arm64"]
       output              = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
@@ -648,25 +647,11 @@ build {
       keep_input_artifact = false
     }
 
-    # Open the box, change the provider to qemu, repackage it with the correct name, and clean out the junk.
+    # Change the provider to qemu
     post-processor "shell-local" {
       only   = ["qemu.arm64"]
       inline = [
-        "echo '=== [ARM64] Converting box from libvirt to qemu ==='",
-        
-        "TMP_DIR=tmp_qemu_${var.box_name}_${var.build_arch}",
-        "mkdir -p $TMP_DIR",
-        "tar -xzf ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C $TMP_DIR",
-        "sed -i.bak 's/\"libvirt\"/\"qemu\"/g' $TMP_DIR/metadata.json",
-        "sed -i.bak 's/:libvirt/:qemu/g' $TMP_DIR/Vagrantfile",
-        "sed -i.bak 's/|libvirt|/|qemu|/g' $TMP_DIR/Vagrantfile",
-        "sed -i.bak '/libvirt.driver/d' $TMP_DIR/Vagrantfile", # Elimina la línea del driver obsoleta
-        "rm -f $TMP_DIR/*.bak",
-        "cd $TMP_DIR && tar -czf ../${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ./*",
-        "cd ..",
-        "rm -rf $TMP_DIR ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box",
-        
-        "echo '=== Done: ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ==='"
+        "mv ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box"
       ]
     }
   }
