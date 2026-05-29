@@ -92,12 +92,10 @@ d-i preseed/late_command string \
     in-target update-grub ; \
     in-target usermod -aG sudo vagrant ; \
     echo "vagrant ALL=(ALL) NOPASSWD: ALL" > /target/etc/sudoers.d/vagrant ; \
-    chmod 440 /target/etc/sudoers.d/vagrant
-%{ if is_utm }
-# Inyectamos eth1 en el sistema de destino antes del primer reinicio
-d-i preseed/late_command string \
-    echo -e "allow-hotplug eth1\niface eth1 inet dhcp" >> /target/etc/network/interfaces
-%{ endif }
+    chmod 440 /target/etc/sudoers.d/vagrant ; \
+    echo "debian" > /target/etc/hostname %{ if is_utm } ; \
+    echo "allow-hotplug eth1" >> /target/etc/network/interfaces ; \
+    echo "iface eth1 inet dhcp" >> /target/etc/network/interfaces %{ endif }
   
 # --- 10. Finalización ---
 d-i cdrom-detect/eject boolean true
