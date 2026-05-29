@@ -564,7 +564,7 @@ build {
   }
   
   provisioner "shell" {
-    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt"]
+    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt", "utm-iso.arm64"]
     execute_command = var.execute_command
     environment_vars = [
       "PACKER_BUILDER_TYPE=${build.type}"
