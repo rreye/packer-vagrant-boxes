@@ -10,7 +10,7 @@ if [ "$BUILDER" = "utm-iso" ] || [ "$BUILDER" = "utm" ]; then
 fi
 
 if [ -f "/usr/bin/dnf" ]; then
-  dnf install -y $PKGS
+  dnf install --skip-broken -y $PKGS
   sed -i 's/^BLACKLIST_RPC=/# BLACKLIST_RPC=/' /etc/sysconfig/qemu-ga # RHEL 8
   sed -i 's/^FILTER_RPC_ARGS=/# FILTER_RPC_ARGS=/' /etc/sysconfig/qemu-ga # RHEL 9+
 elif [ -f "/usr/bin/apt-get" ]; then
