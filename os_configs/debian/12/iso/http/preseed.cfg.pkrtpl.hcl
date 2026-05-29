@@ -1,5 +1,5 @@
 # =============================================================================
-# Preseed for Debian 13 "Trixie"
+# Preseed for Debian 12 "Bookworm"
 # =============================================================================
 
 # --- 1. Localización e Idioma ---
@@ -24,7 +24,7 @@ d-i mirror/country string manual
 d-i mirror/http/hostname string deb.debian.org
 d-i mirror/http/directory string /debian
 d-i mirror/http/proxy string
-d-i mirror/suite string trixie
+d-i mirror/suite string bookworm
 d-i apt-setup/components string main contrib non-free non-free-firmware
 d-i apt-setup/use_mirror boolean false
 d-i apt-setup/cdrom/set-first boolean false
@@ -93,7 +93,12 @@ d-i preseed/late_command string \
     in-target usermod -aG sudo vagrant ; \
     echo "vagrant ALL=(ALL) NOPASSWD: ALL" > /target/etc/sudoers.d/vagrant ; \
     chmod 440 /target/etc/sudoers.d/vagrant
-    
+%{ if is_utm }
+# Inyectamos eth1 en el sistema de destino antes del primer reinicio
+d-i preseed/late_command string \
+    echo -e "allow-hotplug eth1\niface eth1 inet dhcp" >> /target/etc/network/interfaces
+%{ endif }
+
 # --- 10. Finalización ---
 d-i cdrom-detect/eject boolean true
 # Evitar la pausa final de "Instalación completada"

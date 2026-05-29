@@ -82,7 +82,7 @@ variable "iso_checksum_arm64" {
 }
 variable "http_directory" {
   type    = string
-  default = null
+  default = "http"
 }
 variable "boot_command_amd64" {
   type    = list(string)
@@ -124,10 +124,9 @@ variable "guest_os_type_vmware_arm64" {
 }
 
 # --- 1. UTM variables (provider specific) ---
-variable "utm_net_string" {
-  type        = string
-  default     = ""
-  description = "Command or parameter that will be injected only when using the UTM provider"
+variable "build_utm" {
+  type    = bool
+  default = false
 }
 
 # --- 2. Local Variables ---
@@ -138,6 +137,28 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
+  base_dir = "${path.cwd}/${var.http_directory}"
+  
+  # Scan static files and serves them as is
+  static_files = {
+    for f in fileset(local.base_dir, "**/*") :
+    "/${f}" => file("${local.base_dir}/${f}")
+    if !endswith(f, ".pkrtpl.hcl")
+  }
+
+  # Scan the templates, renderized them, removes the .pkrtpl.hcl extension before serving them
+  template_files = {
+    for f in fileset(local.base_dir, "**/*.pkrtpl.hcl") :
+    "/${replace(f, ".pkrtpl.hcl", "")}" => templatefile("${local.base_dir}/${f}", { is_utm = var.build_utm })
+  }
+
+  # Mandatory to prevent Cloud-init from failing
+  ubuntu_meta_data = { 
+    "/meta-data" = "" 
+  }
+  
+  # Merge everything into the final map
+  http_content_dynamic = merge(local.static_files, local.template_files, local.ubuntu_meta_data)
 }
 
 # --- 3. Builders (Sources) ---
@@ -161,7 +182,7 @@ source "virtualbox-iso" "amd64" {
   guest_os_type      = var.guest_os_type_vbox_amd64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -194,7 +215,7 @@ source "virtualbox-iso" "arm64" {
   guest_os_type      = var.guest_os_type_vbox_arm64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -248,7 +269,7 @@ source "vmware-iso" "amd64" {
   guest_os_type      = var.guest_os_type_vmware_amd64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -273,7 +294,7 @@ source "vmware-iso" "arm64" {
   guest_os_type      = var.guest_os_type_vmware_arm64
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -302,7 +323,7 @@ source "vagrant" "libvirt" {
   skip_add     = false
   add_force    = true
   communicator = "ssh"
-  ssh_username = var.ssh_password
+  ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
@@ -311,7 +332,7 @@ source "vagrant" "libvirt" {
 source "qemu" "amd64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_amd64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -342,7 +363,7 @@ source "qemu" "amd64" {
 source "qemu" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
+  http_content       = local.http_content_dynamic
   boot_command       = var.boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
@@ -387,7 +408,7 @@ source "vagrant" "utm" {
   skip_add     = false
   add_force    = true
   communicator = "ssh"
-  ssh_username = var.ssh_password
+  ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
   ssh_read_write_timeout = "1m"
@@ -396,11 +417,8 @@ source "vagrant" "utm" {
 source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
-  http_directory     = var.http_directory
-  boot_command       = [
-    for cmd in var.boot_command_arm64 : 
-    replace(cmd, "<UTM_INJECT>", var.utm_net_string)
-  ]
+  http_content       = local.http_content_dynamic
+  boot_command       = boot_command_arm64
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -449,18 +467,10 @@ build {
   # Provisioning steps (common logic)
   provisioner "shell" {
     # Wait for SSH to be ready after OS install
-    pause_before = "5s"
+    pause_after = "5s"
     inline = [
         "echo 'SSH is up. Starting provisioning...'"
     ]
-  }
-
-  # --- Vagrant user config ---
-  provisioner "shell" {
-    execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/vagrant.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
   }
 
   # --- SSHD ---
@@ -499,6 +509,14 @@ build {
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = length(var.box_provision_scripts) > 0 ? [for script_path in var.box_provision_scripts : "${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
+    expect_disconnect = true
+    timeout         = "30m"
+  }
+  
+  # --- Vagrant user config ---
+  provisioner "shell" {
+    execute_command = var.execute_command
+    scripts = ["${path.root}/scripts/common/vagrant.sh"]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -548,6 +566,9 @@ build {
   provisioner "shell" {
     only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt"]
     execute_command = var.execute_command
+    environment_vars = [
+      "PACKER_BUILDER_TYPE=${build.type}"
+    ]
     scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
     expect_disconnect = true
     timeout         = "30m"
@@ -586,7 +607,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
     compression_level    = 9
     keep_input_artifact  = false
-    vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/scripts/alpine/Vagrantfile.template" : null
+    vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-alpine-arm64-virtualbox.template" : null
   }
   
   post-processor "shell-local" {
@@ -657,13 +678,14 @@ build {
   }
   
   # -----------------------
-  # UTM (special vagrant post-processor)
+  # UTM
   # -----------------------
   post-processor "utm-vagrant" {
     only = ["utm-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     compression_level    = 9
     keep_input_artifact  = false
+    vagrantfile_template = "${path.root}/vagrant/vagrantfile-utm.template"
   }
   
   post-processor "shell-local" {

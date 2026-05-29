@@ -13,6 +13,11 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet dhcp
+
+%{ if is_utm }
+auto eth1
+iface eth1 inet dhcp
+%{ endif }
 "
 
 # DNS
@@ -35,7 +40,7 @@ NTPOPTS=chrony
 
 # Disk setup
 FIRST_DISK=$(ls /sys/class/block | grep -vE '^(loop|ram|sr)' | head -n 1)
-DISKOPTS="-m sys /dev/${FIRST_DISK}"
+DISKOPTS="-m sys /dev/$${FIRST_DISK}"
 
 # Setup user
 USEROPTS="-a -u vagrant"

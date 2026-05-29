@@ -1,4 +1,4 @@
-box_name    = "ubuntu-24.04"
+box_name = "ubuntu-24.04"
 
 # Guest OS types
 guest_os_type_vbox_amd64   = "Ubuntu_64"
@@ -7,7 +7,6 @@ guest_os_type_vmware_amd64 = "ubuntu-64"
 guest_os_type_vmware_arm64 = "arm-ubuntu-64"
 
 # Autoinstall configuration
-http_directory = "http" # Contains user-data and meta-data
 boot_command_amd64 = [
   "<wait2s>",
   "c<wait>",     # Select boot command prompt

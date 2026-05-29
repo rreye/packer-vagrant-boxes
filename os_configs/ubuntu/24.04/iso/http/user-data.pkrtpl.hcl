@@ -43,4 +43,14 @@ autoinstall:
     - echo "root:vagrant" | chroot /target chpasswd
     - echo "vagrant ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/vagrant
     - chmod 0440 /target/etc/sudoers.d/vagrant
+%{ if is_utm }
+    - |
+      cat <<EOF > /target/etc/netplan/99-packer-utm.yaml
+      network:
+        version: 2
+        ethernets:
+          eth1:
+            dhcp4: true
+      EOF
+%{ endif }
     - echo "Installation complete."

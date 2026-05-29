@@ -1,4 +1,4 @@
-box_name    = "debian-13"
+box_name = "debian-13"
 
 # Guest OS types
 guest_os_type_vbox_amd64   = "Debian_64"
@@ -7,7 +7,6 @@ guest_os_type_vmware_amd64 = "debian13-64"
 guest_os_type_vmware_arm64 = "arm-debian13-64"
 
 # Autoinstall preseed configuration
-http_directory = "http"
 boot_command_amd64 = [
   "<wait5s>",
   "<esc><wait>",

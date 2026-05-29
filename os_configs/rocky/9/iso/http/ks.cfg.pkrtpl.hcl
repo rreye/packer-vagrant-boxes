@@ -1,4 +1,4 @@
-# Kickstart file for Rocky Linux 10
+# Kickstart file for Rocky Linux 9
 # System authorization information
 authselect select minimal
 # Use text mode install
@@ -39,7 +39,7 @@ dnf
 vim-minimal
 %end
 
-%post --log=/root/ks-post.log
+%post --log=/root/ks-post.log --erroronfail
 #!/bin/bash
 echo "==> Running Kickstart post-install script"
 # Create vagrant user
@@ -60,11 +60,16 @@ chown -R vagrant:vagrant /home/vagrant/.ssh
 # Disable SELinux
 setenforce 0
 CONFIG_FILE="/etc/selinux/config"
-cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+cp "$CONFIG_FILE" "$${CONFIG_FILE}.bak"
 if [ -f /etc/selinux/config ]; then
     sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
 fi
 grubby --update-kernel ALL --args selinux=0
+
+%{ if is_utm }
+# Configure the second interface for UTM
+nmcli con add type ethernet ifname eth1 con-name eth1 ipv4.method auto
+%{ endif }
 
 echo "==> Kickstart post-install finished"
 %end
