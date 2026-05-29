@@ -72,6 +72,6 @@ echo "Standardizing /etc/hosts..."
 CURRENT_HOSTNAME=$(hostname -s)
 sed -i '/packer-/d' /etc/hosts
 sed -i '/^127\.0\.1\.1/d' /etc/hosts
-printf "127.0.1.1\t%s\n" "$CURRENT_HOSTNAME" >> /etc/hosts
+sed -i "/^127\.0\.0\.1/a 127.0.1.1\t$CURRENT_HOSTNAME" /etc/hosts
 
 echo "==> SSHD configuration complete."
