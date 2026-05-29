@@ -34,9 +34,12 @@ autoinstall:
     
   late-commands:
     - |
-      if [ -f /target/etc/netplan/00-installer-config.yaml ]; then
-        sed -i "s/dhcp4: true/&\n      dhcp-identifier: mac/" /target/etc/netplan/00-installer-config.yaml
+      if [ -f /target/etc/netplan/50-cloud-init.yaml ]; then
+        sed -i "s/dhcp4: true/&\n      dhcp-identifier: mac/" /target/etc/netplan/50-cloud-init.yaml
       fi
+    - mkdir -p /target/etc/default/grub.d
+    - echo 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' > /target/etc/default/grub.d/99-packer-network.cfg
+    - curtin in-target --target=/target -- update-grub
     - echo "PermitRootLogin yes" >> /target/etc/ssh/sshd_config
     - sed -i 's/^.*PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
     - sed -i 's/^.*PubkeyAuthentication.*/PubkeyAuthentication yes/g' /target/etc/ssh/sshd_config
