@@ -658,7 +658,9 @@ build {
         "mkdir -p $TMP_DIR",
         "tar -xzf ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C $TMP_DIR",
         "sed -i.bak 's/\"libvirt\"/\"qemu\"/g' $TMP_DIR/metadata.json",
-        "rm $TMP_DIR/metadata.json.bak",
+        "sed -i 's/:libvirt/:qemu/g' $TMP_DIR/Vagrantfile",
+        "sed -i 's/|libvirt|/|qemu|/g' $TMP_DIR/Vagrantfile",
+        "sed -i '/libvirt.driver/d' $TMP_DIR/Vagrantfile", # Elimina la línea del driver obsoleta
         
         "cd $TMP_DIR && tar -czf ../${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box ./*",
         "cd ..",
