@@ -22,7 +22,7 @@ variable "reboot_command" { type = string }	# Command to reboot the VM
 
 variable "boot_wait" {
   type = string
-  default = "20s"
+  default = "10s"
 }
 
 variable "provision_scripts" {
@@ -393,9 +393,13 @@ source "qemu" "arm64" {
   efi_firmware_code  = "/opt/homebrew/share/qemu/edk2-aarch64-code.fd"
   efi_firmware_vars  = "/opt/homebrew/share/qemu/edk2-arm-vars.fd"
   qemuargs = [
-        ["-device", "virtio-gpu-pci"],
-        ["-device", "qemu-xhci"],
-        ["-device", "driver=usb-kbd"],
+    ["-device", "virtio-gpu-pci"],
+    ["-device", "qemu-xhci"],
+    ["-device", "driver=usb-kbd"],
+    ["-device", "virtio-serial"],
+    ["-chardev", "socket,name=org.qemu.guest_agent.0,id=org.qemu.guest_agent,server=on,wait=off"],
+    ["-device", "virtserialport,chardev=org.qemu.guest_agent,name=org.qemu.guest_agent.0"],
+    ["-serial", "file:deb_debug.log"]
   ]
 }
 

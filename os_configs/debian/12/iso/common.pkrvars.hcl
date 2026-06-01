@@ -7,48 +7,30 @@ guest_os_type_vmware_amd64 = "debian12-64"
 guest_os_type_vmware_arm64 = "arm-debian12-64"
 
 # Autoinstall preseed configuration
-boot_command_amd64 = [
+bboot_command_amd64 = [
   "<wait5s>",
   "<esc><wait>",
-  "auto ",
-  "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-  "debian-installer=es_ES.UTF-8 ",
-  "locale=es_ES.UTF-8 ",
-  "kbd-chooser/method=es ",
-  "keyboard-configuration/xkb-keymap=es ",
-  "netcfg/get_hostname={{ .Name }} ",
-  "netcfg/get_domain=vagrantup.com ",
+  "auto priority=critical preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+  "debian-installer/locale=en_GB.UTF-8 ",
   "apt-setup/cdrom/set-first=false ", 
-  "fb=false ",
-  "debconf/frontend=noninteractive ",
   "console-setup/ask_detect=false ",
   "net.ifnames=0 biosdevname=0 ",
   "<enter><wait>"
 ]
 
 boot_command_arm64 = [
-  "<wait5s>",
-  "c",
-  "<wait>",
-  "linux /install.a64/vmlinuz auto=true priority=critical ",
-  "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-  "debian-installer=es_ES.UTF-8 ",
-  "locale=es_ES.UTF-8 ",
-  "kbd-chooser/method=es ",
-  "keyboard-configuration/xkb-keymap=es ",
-  "netcfg/get_hostname={{ .Name }} ",
-  "netcfg/get_domain=vagrantup.com ",
-  "apt-setup/cdrom/set-first=false ",
-  "fb=false ",
-  "debconf/frontend=noninteractive ",
+  "<wait5s><up><wait>",
+  "e",
+  "<wait><down><down><down><end><wait>",
+  "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+  "auto priority=critical preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+  "debian-installer/locale=en_GB.UTF-8 ",
+  "apt-setup/cdrom/set-first=false ", 
   "console-setup/ask_detect=false ",
   "net.ifnames=0 biosdevname=0 ",
-  "console=tty0 ", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
-  "--- <enter>",  
+  "console=tty0", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
   "<wait>",
-  "initrd /install.a64/initrd.gz<enter>",
-  "<wait>",
-  "boot<enter>"
+  "<f10>",
 ]
 
 # Execute command
