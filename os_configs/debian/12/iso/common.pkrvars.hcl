@@ -7,7 +7,7 @@ guest_os_type_vmware_amd64 = "debian12-64"
 guest_os_type_vmware_arm64 = "arm-debian12-64"
 
 # Autoinstall preseed configuration
-bboot_command_amd64 = [
+boot_command_amd64 = [
   "<wait2s>",
   "<esc><wait>",
   "auto priority=critical preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
