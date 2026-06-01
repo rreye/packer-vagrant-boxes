@@ -14,6 +14,7 @@ apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync un
 sed -i 's/^# *es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
 update-locale LANG=es_ES.UTF-8
+localectl set-keymap es
 if [ -f /bin/bash ]; then
     HOME_DIR=/home/vagrant
     echo 'export LC_ALL=es_ES.UTF-8' >> $HOME_DIR/.bashrc
