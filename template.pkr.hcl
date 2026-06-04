@@ -217,7 +217,7 @@ source "virtualbox-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<NET_IFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -296,7 +296,7 @@ source "vmware-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<NET_IFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -365,7 +365,7 @@ source "qemu" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<NET_IFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
