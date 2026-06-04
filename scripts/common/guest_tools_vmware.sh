@@ -24,7 +24,7 @@ elif [ -f "/sbin/apk" ]; then
   rc-update add acpid default
   rc-update add open-vm-tools default
   rc-service open-vm-tools start
-  rc-service open-vm-tools acpid
+  rc-service acpid start
 fi
 
 echo "==> Guest vmware tools complete."
