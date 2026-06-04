@@ -137,6 +137,7 @@ locals {
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
+
   base_dir = "${path.cwd}/${var.http_directory}"
   
   # Scan static files and serves them as is
@@ -216,7 +217,7 @@ source "virtualbox-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = var.boot_command_arm64
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -295,7 +296,7 @@ source "vmware-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = var.boot_command_arm64
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -364,7 +365,7 @@ source "qemu" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = var.boot_command_arm64
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<CHOOSE_INTERFACE> " ? "" : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -422,7 +423,7 @@ source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
   http_content       = local.http_content_dynamic
-  boot_command       = var.boot_command_arm64
+  boot_command       = [ for cmd in var.boot_command_arm64 : cmd == "<NET_IFACE> " ? "netcfg/choose_interface=eth1 " : cmd ]
   boot_wait          = var.boot_wait
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
@@ -676,7 +677,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     compression_level    = 9
     keep_input_artifact  = false
-    vagrantfile_template = "${path.root}/vagrant/vagrantfile-utm.template"
+    vagrantfile_template = split("-", var.box_name)[0] == "rocky" ? "${path.root}/vagrant/vagrantfile-utm-rhel.template" : "${path.root}/vagrant/vagrantfile-utm.template"
   }
   
   post-processor "shell-local" {
