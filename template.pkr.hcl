@@ -612,7 +612,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
     compression_level    = 9
     keep_input_artifact  = false
-    vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-virtualbox-arm64-alpine" : null
+    vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-rsync" : null
   }
   
   post-processor "shell-local" {
@@ -631,6 +631,7 @@ build {
     compression_level    = 9
     keep_input_artifact  = false
     provider_override    = "vmware"
+    vagrantfile_template = split("-", var.box_name)[0] == "alpine" ? "${path.root}/vagrant/vagrantfile-rsync" : null
   }
   
   post-processor "shell-local" {
@@ -650,7 +651,7 @@ build {
       output              = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
       compression_level   = 9
       keep_input_artifact = false
-      vagrantfile_template = (var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-qemu-arm64.template" : null
+      vagrantfile_template = (var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-rsync" : null
     }
 
     # Change the provider to qemu
@@ -677,7 +678,7 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     compression_level    = 9
     keep_input_artifact  = false
-    vagrantfile_template = split("-", var.box_name)[0] == "rocky" ? "${path.root}/vagrant/vagrantfile-utm-rhel.template" : "${path.root}/vagrant/vagrantfile-utm.template"
+    vagrantfile_template = split("-", var.box_name)[0] == "rocky" ? "${path.root}/vagrant/vagrantfile-utm-rhel" : "${path.root}/vagrant/vagrantfile-utm"
   }
   
   post-processor "shell-local" {

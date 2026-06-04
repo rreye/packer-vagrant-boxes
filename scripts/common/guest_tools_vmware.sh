@@ -17,9 +17,14 @@ elif [ -f "/usr/bin/zypper" ]; then
   systemctl enable vmtoolsd
   systemctl start vmtoolsd
 elif [ -f "/sbin/apk" ]; then
-  apk add --no-cache open-vm-tools open-vm-tools-guestinfo
+  apk add --no-cache open-vm-tools open-vm-tools-guestinfo open-vm-tools-hgfs fuse acpid
+  if ! grep -q "^fuse$" /etc/modules; then
+    echo "fuse" >> /etc/modules
+  fi
+  rc-update add acpid default
   rc-update add open-vm-tools default
-  rc-service open-vm-tools start 
+  rc-service open-vm-tools start
+  rc-service open-vm-tools acpid
 fi
 
 echo "==> Guest vmware tools complete."
