@@ -30,6 +30,7 @@ boot_command_arm64 = [
   "apt-setup/cdrom/set-first=false ", 
   "console-setup/ask_detect=false ",
   "net.ifnames=0 biosdevname=0 ",
+  "<NET_IFACE> ",
   "console=tty0", # Required for QEMU 'virt' board to show boot logs on the VNC/Cocoa screen (defaults to serial otherwise)
   "<wait>",
   "<f10>",

@@ -94,8 +94,8 @@ d-i preseed/late_command string \
     echo "vagrant ALL=(ALL) NOPASSWD: ALL" > /target/etc/sudoers.d/vagrant ; \
     chmod 440 /target/etc/sudoers.d/vagrant ; \
     echo "debian" > /target/etc/hostname %{ if is_utm } ; \
-    echo "allow-hotplug eth1" >> /target/etc/network/interfaces ; \
-    echo "iface eth1 inet dhcp" >> /target/etc/network/interfaces %{ endif }
+    echo "allow-hotplug eth0" >> /target/etc/network/interfaces ; \
+    echo "iface eth0 inet dhcp" >> /target/etc/network/interfaces %{ endif }
 
 # --- 10. Finalización ---
 d-i cdrom-detect/eject boolean true
