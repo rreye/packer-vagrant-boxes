@@ -1,7 +1,8 @@
 # Cache objects
 packer_cache/
 
-# Crash log
+# Logs and crash logs
+*.log
 crash.log
 
 # Local testing
@@ -10,4 +11,5 @@ testing
 # For built boxes
 *.box
 
+github-workflows
 .DS_Store
