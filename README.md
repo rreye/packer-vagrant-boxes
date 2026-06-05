@@ -1,6 +1,3 @@
-[![Build from Box](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build_from_box.yml/badge.svg)](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build_from_box.yml)
-[![Build from ISO](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build_from_iso.yml/badge.svg)](https://github.com/rreye/packer-vagrant-boxes/actions/workflows/build_from_iso.yml)
-
 # Packer Vagrant Box Factory (ARM64 & AMD64)
 
 This repository contains Packer templates to build Vagrant boxes for both **`arm64` (aarch64 / Apple Silicon)** and **`amd64` (x86_64)** architectures.
