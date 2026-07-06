@@ -1,4 +1,4 @@
-box_version = "9.6"
+box_version = "9.7"
 
 # ISO URLs and checksums
 iso_url_amd64      = "https://dl.rockylinux.org/vault/rocky/9.7/isos/x86_64/Rocky-9.7-x86_64-minimal.iso"
