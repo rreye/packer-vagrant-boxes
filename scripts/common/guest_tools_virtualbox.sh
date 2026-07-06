@@ -2,7 +2,7 @@
 
 echo "==> Running guest virtualbox tools script..."
 
-VERSION=7.2.8
+VERSION=7.2.12
 ARCHITECTURE="$(uname -m)"
 KERNEL_VERSION="$(uname -r)"
 
