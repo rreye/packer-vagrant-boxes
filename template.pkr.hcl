@@ -2,11 +2,11 @@
 // Master template for building Vagrant boxes from ISO files and/or existing boxes.
 packer {
   required_plugins {
-    virtualbox = { version = ">= 1.1.3", source = "github.com/hashicorp/virtualbox" }
-    vmware     = { version = "= 2.1.2", source = "github.com/hashicorp/vmware" }
-    qemu       = { version = ">= 1.1.4", source = "github.com/hashicorp/qemu" }
+    virtualbox = { version = ">= 1.1.4", source = "github.com/hashicorp/virtualbox" }
+    vmware     = { version = "= 2.1.3", source = "github.com/hashicorp/vmware" }
+    qemu       = { version = ">= 1.1.5", source = "github.com/hashicorp/qemu" }
     utm        = { version = ">= v4.0.0", source  = "github.com/naveenrajm7/utm"}
-    vagrant    = { version = ">= 1.1.6", source = "github.com/hashicorp/vagrant" }
+    vagrant    = { version = ">= 1.1.7", source = "github.com/hashicorp/vagrant" }
   }
 }
 
@@ -630,7 +630,6 @@ build {
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
     compression_level    = 9
     keep_input_artifact  = false
-    provider_override    = "vmware"
     vagrantfile_template = split("-", var.box_name)[0] == "alpine" ? "${path.root}/vagrant/vagrantfile-rsync" : null
   }
   
