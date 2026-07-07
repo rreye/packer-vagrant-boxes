@@ -168,7 +168,7 @@ source "vagrant" "virtualbox" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "virtualbox"
-  template     = "${path.root}/Vagrantfile.template"
+  template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
   add_force    = true
   communicator = "ssh"
@@ -255,7 +255,7 @@ source "vagrant" "vmware" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
-  template     = "${path.root}/Vagrantfile.template"
+  template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
   add_force    = true
   communicator = "ssh"
@@ -320,7 +320,7 @@ source "vagrant" "libvirt" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "libvirt"
-  template     = "${path.root}/Vagrantfile.template"
+  template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
   add_force    = true
   communicator = "ssh"
@@ -409,7 +409,7 @@ source "vagrant" "utm" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "utm"
-  template     = "${path.root}/Vagrantfile.template"
+  template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
   add_force    = true
   communicator = "ssh"
