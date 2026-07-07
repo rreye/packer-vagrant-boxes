@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
   # RHEL9+ does not support 9pfs
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
   
-  config.vm.provider :utm do |utm|
+  config.vm.provider "utm" do |utm|
     utm.directory_share_mode = "webDAV"
   end
 end
