@@ -169,7 +169,7 @@ source "vagrant" "virtualbox" {
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "virtualbox"
   template     = "${path.root}/vagrant/Vagrantfile.template"
-  skip_add     = true
+  skip_add     = false
   add_force    = false
   communicator = "ssh"
   ssh_username = var.ssh_username
