@@ -49,6 +49,7 @@ Vagrant.configure("2") do |config|
     v.cpus = CPU
     v.cputopology :sockets => '1', :cores => CPU, :threads => '1'
     v.video_vram = VIDEO_VRAM_KB
+    v.video_type = "vga"
   end
 
   config.vm.provider "utm" do |v|
