@@ -169,13 +169,13 @@ source "vagrant" "virtualbox" {
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
   provider     = "virtualbox"
   template     = "${path.root}/vagrant/Vagrantfile.template"
-  skip_add     = false
-  add_force    = true
+  skip_add     = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
 }
 
 source "virtualbox-iso" "amd64" {
@@ -189,7 +189,7 @@ source "virtualbox-iso" "amd64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-vbox-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -222,7 +222,7 @@ source "virtualbox-iso" "arm64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-vbox-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -257,12 +257,12 @@ source "vagrant" "vmware" {
   provider     = "vmware_desktop" # This maps to VMware Fusion on macOS
   template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
-  add_force    = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
 }
 
 source "vmware-iso" "amd64" {
@@ -276,7 +276,7 @@ source "vmware-iso" "amd64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-vmware-amd64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -301,7 +301,7 @@ source "vmware-iso" "arm64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-vmware-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -322,12 +322,12 @@ source "vagrant" "libvirt" {
   provider     = "libvirt"
   template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
-  add_force    = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
 }
 
 source "qemu" "amd64" {
@@ -370,7 +370,7 @@ source "qemu" "arm64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-qemu-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
@@ -411,12 +411,12 @@ source "vagrant" "utm" {
   provider     = "utm"
   template     = "${path.root}/vagrant/Vagrantfile.template"
   skip_add     = false
-  add_force    = true
+  add_force    = false
   communicator = "ssh"
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
   ssh_timeout  = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
 }
 
 source "utm-iso" "arm64" {
@@ -428,7 +428,7 @@ source "utm-iso" "arm64" {
   ssh_username       = var.ssh_username
   ssh_password       = var.ssh_password
   ssh_timeout        = "20m"
-  ssh_read_write_timeout = "1m"
+  ssh_read_write_timeout = "10m"
   output_directory   = "output-utm-arm64"
   shutdown_command   = var.shutdown_command
   cpus               = var.cpus
