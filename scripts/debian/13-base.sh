@@ -9,7 +9,7 @@ export DEBCONF_NONINTERACTIVE_SEEN=true
 # Install common tools
 apt-get clean
 apt-get update -y
-apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync unzip sudo gnupg locales
+apt-get install -y vim nano git curl wget tree net-tools openssh-server rsync tar unzip sudo gnupg locales
 
 sed -i 's/^# *es_ES.UTF-8 UTF-8/es_ES.UTF-8 UTF-8/' /etc/locale.gen
 sed -i 's/XKBLAYOUT=".*"/XKBLAYOUT="es"/' /etc/default/keyboard
