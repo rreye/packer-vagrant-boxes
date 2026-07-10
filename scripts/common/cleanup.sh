@@ -46,9 +46,9 @@ _EOF_
 elif [ -f "/usr/bin/zypper" ]; then
 	echo "==> Cleaning Zypper (SUSE/openSUSE)..."
 	# Purge old kernels
-	zypper purge-kernels
+	zypper -n purge-kernels
 	# Remove linux firmware
-	zypper rm -u kernel-firmware
+	zypper -n rm -u kernel-firmware
 	ORPHANS=$(zypper -q packages --orphaned | awk '{print $5}')
     	if [ -n "$ORPHANS" ]; then
       		zypper -n rm $ORPHANS

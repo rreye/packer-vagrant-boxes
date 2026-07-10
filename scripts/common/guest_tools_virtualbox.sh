@@ -25,12 +25,15 @@ fi
 echo "Kernel version: $KERNEL_VERSION"
 
 if [ -f "/usr/bin/dnf" ]; then
+        dnf remove -y virtualbox-guest-additions virtualbox-guest-tools || true
 	dnf install --refresh -y cpp gcc make bzip2 tar elfutils-libelf-devel kernel-headers-"$KERNEL_VERSION" kernel-devel-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/apt-get" ]; then
 	export DEBIAN_FRONTEND=noninteractive
 	export DEBCONF_NONINTERACTIVE_SEEN=true
+	apt-get purge -y virtualbox-guest-utils virtualbox-guest-x11 virtualbox-guest-dkms || true
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
+        zypper -n rm -u virtualbox-guest-tools virtualbox-guest-x11 virtualbox-kmp-default || true
 	zypper install -y cpp gcc make bzip2 tar kernel-default-devel
 elif [ -f "/sbin/apk" ]; then
 	if [ "$ARCHITECTURE" = "aarch64" ]; then
@@ -66,9 +69,9 @@ fi
 
 echo "Running install script..."
 if [ "$ARCHITECTURE" = "aarch64" ]; then
-	/mnt/VBoxGuestAdditions/VBoxLinuxAdditions-arm64.run --nox11 || true
+	echo "yes" | /mnt/VBoxGuestAdditions/VBoxLinuxAdditions-arm64.run --nox11 || true
 else
-	/mnt/VBoxGuestAdditions/VBoxLinuxAdditions.run --nox11 || true
+	echo "yes" | /mnt/VBoxGuestAdditions/VBoxLinuxAdditions.run --nox11 || true
 fi
 
 umount /mnt/VBoxGuestAdditions

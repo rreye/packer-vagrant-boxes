@@ -80,13 +80,25 @@ case "$DISTRO_ID" in
     fi
     ;;
 
-  rocky|rhel|centos|almalinux|fedora|opensuse*|suse)
-    echo "-> RHEL/SUSE family"
+  rocky|rhel|centos|almalinux|fedora)
+    echo "-> RHEL family"
     
     if [ -f /etc/default/grub ]; then
     	set_grub_timeout /etc/default/grub
     	disable_predictable_netnames /etc/default/grub
 	generate_grub_cfg_rhel
+    else
+    	echo "   No /etc/default/grub found. Skipping."
+    fi
+    ;;
+
+  opensuse*|suse)
+    echo "-> SUSE family"
+    
+    if [ -f /etc/default/grub ]; then
+    	set_grub_timeout /etc/default/grub
+    	disable_predictable_netnames /etc/default/grub
+	update-bootloader --refresh
     else
     	echo "   No /etc/default/grub found. Skipping."
     fi
