@@ -7,6 +7,9 @@
     "keyboard": "es",
     "timezone": "UTC"
   },
+  "hostname": {
+    "static": "opensuse"
+  },
   "user": {
     "fullName": "Vagrant",
     "userName": "vagrant",
@@ -17,8 +20,15 @@
     "password": "vagrant",
     "hashedPassword": false
   },
-  "hostname": {
-    "static": "opensuse"
+  "software": {
+    "packages": [
+      "sudo",
+      "openssh",
+      "wget",
+      "curl",
+      "vim",
+      "nano"
+    ]
   },
   "scripts": {
     "post": [
