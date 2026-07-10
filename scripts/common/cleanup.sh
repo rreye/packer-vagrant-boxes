@@ -8,8 +8,15 @@ fi
 
 if [ -f "/usr/bin/dnf" ]; then
 	echo "==> Cleaning DNF (RHEL/Fedora/Alma/Rocky)..."
+	# Disable and remove kdump
+	systemctl stop kdump || true
+	systemctl disable kdump || true
+	systemctl mask kdump
+	dnf -y remove kexec-tools
+	
 	# Purge old kernels
 	dnf -y remove "$(dnf repoquery --installonly --latest-limit=-1 -q)"
+	
 	# Remove linux firmware
 	distro="$(rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-')"
 	if [ "$distro" != 'oraclelinux' ]; then
@@ -22,6 +29,12 @@ if [ -f "/usr/bin/dnf" ]; then
 	rm -rf /var/cache/dnf/*
 elif [ -f "/usr/bin/apt-get" ]; then
 	echo "==> Cleaning APT (Debian/Ubuntu)..."
+	# Disable and remove kdump
+	systemctl stop kdump-tools || true
+	systemctl disable kdump-tools || true
+	systemctl mask kdump-tools
+	apt-get -y purge kdump-tools linux-crashdump
+	
 	# Purge old kernels
 	dpkg --list | awk '{ print $2 }' \
     	    | grep 'linux-image-.*-generic' || true \
@@ -45,20 +58,35 @@ _EOF_
 	rm -rf /var/cache/apt/archives/*
 elif [ -f "/usr/bin/zypper" ]; then
 	echo "==> Cleaning Zypper (SUSE/openSUSE)..."
+	# Disable and remove kdump
+	systemctl stop kdump || true
+	systemctl disable kdump || true
+	systemctl mask kdump
+	zypper -n rm -u kdump
+	
 	# Purge old kernels
 	zypper -n purge-kernels
+	
 	# Remove linux firmware
 	zypper -n rm -u kernel-firmware
-	ORPHANS=$(zypper -q packages --orphaned | awk '{print $5}')
-    	if [ -n "$ORPHANS" ]; then
-      		zypper -n rm $ORPHANS
-    	fi
+	
+	# Remove orphaned packages
+	ORPHANS=$(zypper -q packages --orphaned | awk -F '|' 'NR>2 {print $3}' | tr -d ' ')
+	if [ -n "$ORPHANS" ]; then
+		echo "Removing orphaned: $ORPHANS"
+		zypper -n rm -u $ORPHANS
+	else
+		echo "No orphaned packages to remove."
+	fi
+
+    	# Standard cleanup
 	zypper clean --all
 	rm -rf /var/cache/zypp/packages/*
 elif [ -f "/sbin/apk" ]; then
 	echo "==> Cleaning APK (Alpine)..."
 	# Remove linux firmware
 	apk del linux-firmware
+	# Standard cleanup
 	apk cache clean
 	rm -rf /var/cache/apk/*
 fi
