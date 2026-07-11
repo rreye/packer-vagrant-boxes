@@ -178,6 +178,7 @@ source "vagrant" "virtualbox" {
   ssh_read_write_timeout = "10m"
 }
 
+# --- VirtualBox (ISO) ---
 source "virtualbox-iso" "amd64" {
   firmware           = "bios"
   guest_os_type      = var.guest_os_type_vbox_amd64
@@ -265,6 +266,7 @@ source "vagrant" "vmware" {
   ssh_read_write_timeout = "10m"
 }
 
+# --- VMware (ISO) ---
 source "vmware-iso" "amd64" {
   firmware           = "bios"
   guest_os_type      = var.guest_os_type_vmware_amd64
@@ -315,7 +317,7 @@ source "vmware-iso" "arm64" {
   headless           = false
 }
 
-# --- QEMU / Libvirt ---
+# --- Libvirt ---
 source "vagrant" "libvirt" {
   source_path  = var.base_box == null ? "dummy" : var.base_box
   box_version  = var.base_box_version == null ? "0" : var.base_box_version
@@ -330,6 +332,22 @@ source "vagrant" "libvirt" {
   ssh_read_write_timeout = "10m"
 }
 
+# --- QEMU ---
+source "vagrant" "qemu" {
+  source_path  = var.base_box == null ? "dummy" : var.base_box
+  box_version  = var.base_box_version == null ? "0" : var.base_box_version
+  provider     = "qemu"
+  template     = "${path.root}/vagrant/Vagrantfile.template"
+  skip_add     = false
+  add_force    = false
+  communicator = "ssh"
+  ssh_username = var.ssh_username
+  ssh_password = var.ssh_password
+  ssh_timeout  = "20m"
+  ssh_read_write_timeout = "10m"
+}
+
+# --- QEMU (ISO) ---
 source "qemu" "amd64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
@@ -419,6 +437,7 @@ source "vagrant" "utm" {
   ssh_read_write_timeout = "10m"
 }
 
+# --- UTM (ISO) ---
 source "utm-iso" "arm64" {
   iso_url            = local.iso_url == null ? "dummy" : local.iso_url
   iso_checksum       = local.iso_checksum
@@ -466,6 +485,7 @@ build {
     "source.vagrant.virtualbox",
     "source.vagrant.vmware",
     "source.vagrant.libvirt",
+    "source.vagrant.qemu",
     "source.vagrant.utm"
   ]
 
@@ -559,7 +579,8 @@ build {
     expect_disconnect = true
     timeout         = "30m"
   }
-  
+
+  # --- Provider specific ---
   provisioner "shell" {
     only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware"]
     execute_command = var.execute_command
@@ -567,9 +588,10 @@ build {
     expect_disconnect = true
     timeout         = "30m"
   }
-  
+
+  # --- Provider specific ---
   provisioner "shell" {
-    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt", "utm-iso.arm64"]
+    only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt", "vagrant.qemu", "utm-iso.arm64"]
     execute_command = var.execute_command
     environment_vars = [
       "PACKER_BUILDER_TYPE=${source.type}"
@@ -668,7 +690,14 @@ build {
       "mv output-libvirt/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
     ]
   }
-  
+
+  post-processor "shell-local" {
+    only   = ["vagrant.qemu"]
+    inline = [
+      "mv output-qemu/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box"
+    ]
+  }
+
   # -----------------------
   # UTM
   # -----------------------
