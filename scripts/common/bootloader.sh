@@ -2,7 +2,7 @@
 
 echo "==> Configuring Bootloader (GRUB/Syslinux)..."
 
-NEW_TIMEOUT=5  # segundos
+NEW_TIMEOUT=5  # seconds
 DISTRO_ID=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
 
 set_grub_timeout() {
@@ -65,6 +65,18 @@ disable_predictable_netnames() {
   fi
 }
 
+remove_crashkernel() {
+  FILE="$1"
+  if grep -q "crashkernel=" "$FILE"; then    
+    # [[:space:]]* -> Captura los espacios en blanco que haya justo antes (para no dejar huecos dobles)
+    # [^" ]* -> Captura todo lo que siga hasta que se encuentre un espacio o unas comillas dobles
+    sed -i -e 's/[[:space:]]*crashkernel=[^" ]*//g' "$FILE"    
+    echo "Removed crashkernel parameter from GRUB configuration."
+  else
+    echo "Crashkernel parameter not present. Nothing to do."
+  fi
+}
+
 echo "==> Detecting distro: $DISTRO_ID"
 
 case "$DISTRO_ID" in
@@ -72,8 +84,9 @@ case "$DISTRO_ID" in
     echo "-> Ubuntu/Debian"
     
     if [ -f /etc/default/grub ]; then
-    	set_grub_timeout /etc/default/grub
-    	disable_predictable_netnames /etc/default/grub
+    	set_grub_timeout "/etc/default/grub"
+    	disable_predictable_netnames "/etc/default/grub"
+		remove_crashkernel "/etc/default/grub"
     	update-grub
     else
     	echo "   No /etc/default/grub found. Skipping."
@@ -84,9 +97,10 @@ case "$DISTRO_ID" in
     echo "-> RHEL family"
     
     if [ -f /etc/default/grub ]; then
-    	set_grub_timeout /etc/default/grub
-    	disable_predictable_netnames /etc/default/grub
-	generate_grub_cfg_rhel
+    	set_grub_timeout "/etc/default/grub"
+    	disable_predictable_netnames "/etc/default/grub"
+		remove_crashkernel "/etc/default/grub"
+	    generate_grub_cfg_rhel
     else
     	echo "   No /etc/default/grub found. Skipping."
     fi
@@ -96,9 +110,10 @@ case "$DISTRO_ID" in
     echo "-> SUSE family"
     
     if [ -f /etc/default/grub ]; then
-    	set_grub_timeout /etc/default/grub
-    	disable_predictable_netnames /etc/default/grub
-	update-bootloader --refresh
+    	set_grub_timeout "/etc/default/grub"
+    	disable_predictable_netnames "/etc/default/grub"
+		remove_crashkernel "/etc/default/grub"
+	    update-bootloader --refresh
     else
     	echo "   No /etc/default/grub found. Skipping."
     fi
@@ -144,6 +159,6 @@ case "$DISTRO_ID" in
     ;;
 esac
 
-sleep 2
+sleep 1
 
 echo "==> Bootloader configuration complete."
