@@ -74,10 +74,11 @@ elif [ -f "/usr/bin/zypper" ]; then
 	zypper -n rm -u kernel-firmware
 	
 	# Remove orphaned packages
-	ORPHANS=$(zypper -q packages --orphaned | awk -F '|' 'NR>2 {print $3}' | tr -d ' ')
+	ORPHANS=$(zypper -x -q packages --orphaned | grep '<solvable' | grep -o 'name="[^"]*"' | cut -d'"' -f2)
 	if [ -n "$ORPHANS" ]; then
-		echo "Removing orphaned: $ORPHANS"
-		zypper -n rm -u $ORPHANS
+	    CLEAN_LIST=$(echo "$ORPHANS" | tr '\n' ' ')
+		echo "Removing orphaned packages: $CLEAN_LIST"
+		zypper -n rm -u $CLEAN_LIST
 	else
 		echo "No orphaned packages to remove."
 	fi
