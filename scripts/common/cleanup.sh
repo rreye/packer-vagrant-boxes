@@ -7,11 +7,12 @@ if [ -f /etc/sudoers.d/_packer_env ]; then
 fi
 
 if [ -f "/usr/bin/dnf" ]; then
-	echo "==> Cleaning DNF (RHEL/Fedora/Alma/Rocky)..."
+	echo "==> Cleaning (RHEL/Fedora/Alma/Rocky)..."
 	# Disable and remove kdump
 	systemctl stop kdump || true
 	systemctl disable kdump || true
 	systemctl mask kdump
+	rm -f /etc/kdump.conf /etc/sysconfig/kdump
 	dnf -y remove kexec-tools
 	
 	# Purge old kernels
@@ -28,11 +29,12 @@ if [ -f "/usr/bin/dnf" ]; then
 	dnf clean all --enablerepo=\*
 	rm -rf /var/cache/dnf/*
 elif [ -f "/usr/bin/apt-get" ]; then
-	echo "==> Cleaning APT (Debian/Ubuntu)..."
+	echo "==> Cleaning (Debian/Ubuntu)..."
 	# Disable and remove kdump
 	systemctl stop kdump-tools || true
 	systemctl disable kdump-tools || true
 	systemctl mask kdump-tools
+	rm -f /etc/default/kdump-tools
 	apt-get -y purge kdump-tools linux-crashdump
 	
 	# Purge old kernels
@@ -57,11 +59,12 @@ _EOF_
 	rm -rf /var/lib/apt/lists/*
 	rm -rf /var/cache/apt/archives/*
 elif [ -f "/usr/bin/zypper" ]; then
-	echo "==> Cleaning Zypper (SUSE/openSUSE)..."
+	echo "==> Cleaning (SUSE/openSUSE)..."
 	# Disable and remove kdump
 	systemctl stop kdump || true
 	systemctl disable kdump || true
 	systemctl mask kdump
+	rm -f /etc/sysconfig/kdump
 	zypper -n rm -u kdump
 	
 	# Purge old kernels
@@ -83,7 +86,7 @@ elif [ -f "/usr/bin/zypper" ]; then
 	zypper clean --all
 	rm -rf /var/cache/zypp/packages/*
 elif [ -f "/sbin/apk" ]; then
-	echo "==> Cleaning APK (Alpine)..."
+	echo "==> Cleaning (Alpine)..."
 	# Remove linux firmware
 	apk del linux-firmware
 	# Standard cleanup
