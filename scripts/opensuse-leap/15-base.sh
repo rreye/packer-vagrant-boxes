@@ -21,26 +21,4 @@ rm -f /root/autoinst.xml
 # Limpiar los logs de instalación del sistema
 rm -rf /var/log/YaST2/*
 
-if systemctl is-active --quiet apparmor; then
-    echo "Disabling AppArmor..."
-    systemctl stop apparmor
-    systemctl disable apparmor
-    
-    CONFIG_FILE="/etc/default/grub"
-    
-    if [ -f "$CONFIG_FILE" ]; then
-        cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
-        # Inyectar apparmor=0 en los parámetros del kernel si no está ya presente
-        if ! grep -q "apparmor=0" "$CONFIG_FILE"; then
-            sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="apparmor=0 /' "$CONFIG_FILE"
-            # update-bootloader es la herramienta nativa de SUSE.
-            # Se encarga automáticamente de detectar si es EFI o BIOS y regenerar la configuración correcta.
-            update-bootloader --refresh
-        fi
-    else
-        echo "ERROR: GRUB config file not found at $CONFIG_FILE"
-        exit 1
-    fi
-fi
-
 echo "==> Provisioning complete."
