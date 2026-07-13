@@ -30,6 +30,22 @@ This repository uses a refactored structure to separate build types and keep tem
 
 ---
 
+## 🛠️ Supported Providers & Architectures
+
+The following table summarizes the supported combinations of providers, architectures, and build methods:
+
+| Provider | Build from ISO (`amd64`) | Build from ISO (`arm64`) | Customize from Box (Both) |
+| :--- | :---: | :---: | :---: |
+| **VirtualBox** | ✅ (`virtualbox-iso.amd64`) | ✅ (`virtualbox-iso.arm64`) | ✅ (`vagrant.virtualbox`) |
+| **VMware** | ✅ (`vmware-iso.amd64`) | ✅ (`vmware-iso.arm64`) | ✅ (`vagrant.vmware`) |
+| **QEMU** | ✅ (`qemu.amd64`) | ✅ (`qemu.arm64`) | ✅ (`vagrant.qemu`) |
+| **UTM** | ❌ | ✅ (`utm-iso.arm64`) | ✅ (`vagrant.utm`) |
+| **Libvirt** | ❌* | ❌* | ✅ (`vagrant.libvirt`) |
+
+*\* Note: Boxes for Libvirt can be generated from the `qemu` ISO builds, as the post-processor packages the QEMU image into a libvirt-compatible Vagrant box.*
+
+---
+
 ## 🚀 How to Build a Box
 
 First, initialize Packer to download the required plugins:
