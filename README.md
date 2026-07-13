@@ -26,7 +26,7 @@ This repository uses a refactored structure to separate build types and keep tem
 *   `scripts/`:
     *   `common/`: Common provisioning scripts shared across all builds (e.g., `vagrant.sh`, `sshd.sh`).
 *   `template.pkr.hcl`: The master Packer template used for all builds.
-*   `Vagrantfile.template`: A template for the `Vagrantfile` inside the generated box.
+*   `vagrant/`: Contains `Vagrantfile` templates used inside the generated boxes.
 
 ---
 
