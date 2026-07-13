@@ -1,4 +1,4 @@
-box_version = "16.0"
+box_version = "15.6"
 
 # ISO URLs and checksums
 iso_url_amd64      = "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso"
