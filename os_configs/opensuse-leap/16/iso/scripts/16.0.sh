@@ -9,17 +9,15 @@ mkdir -p "$ZYPP_CONF_DIR"
 echo "releasever = ${RELEASEVER}" > "${ZYPP_CONF_DIR}/99-releasever.conf"
 echo "Zypper version frozen: ${RELEASEVER} (via 99-releasever.conf)"
 
-DUPLICATE_REPO=$(zypper lr | grep "distribution/leap/${RELEASEVER}/repo/oss" | grep -v "openSUSE:repo-oss" | awk -F '|' '{print $2}' | tr -d ' ')
+# Limpieza de duplicados
+# El '|| true' en el grep evita que el script aborte si no hay duplicados
+DUPLICATE_REPOS=$(zypper lr | grep "distribution/leap/${RELEASEVER}/repo/oss" | grep -v "repo-oss" | awk -F '|' '{print $2}' | tr -d ' ' || true)
 
-if [ -n "$DUPLICATE_REPO" ]; then
-    echo "Removing duplicated repo: $DUPLICATE_REPO"
-    zypper rr "$DUPLICATE_REPO"
-fi
-
-# Limpieza de Leap 15 (Instalador AutoYaST - Repo CD/DVD local)
-if zypper lr | grep -q "openSUSE-${RELEASEVER}-0"; then
-    echo "Removing local DVD/ISO repo (YaST)..."
-    zypper rr "openSUSE-${RELEASEVER}-0"
+if [ -n "$DUPLICATE_REPOS" ]; then
+    for repo in $DUPLICATE_REPOS; do
+        echo "Removing duplicated repo: $repo"
+        zypper rr "$repo" || true
+    done
 fi
 
 # Refrescar metadatos aplicando el bloqueo de versión
