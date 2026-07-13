@@ -83,16 +83,6 @@ _EOF_
 	# Remove linux firmware
 	zypper -n rm -u kernel-firmware || true
 	
-	# Remove orphaned packages
-	ORPHANS=$(zypper -x -q packages --orphaned | grep '<solvable' | grep -o 'name="[^"]*"' | cut -d'"' -f2)
-	if [ -n "$ORPHANS" ]; then
-	    CLEAN_LIST=$(echo "$ORPHANS" | tr '\n' ' ')
-		echo "Removing orphaned packages: $CLEAN_LIST"
-		zypper -n rm -u $CLEAN_LIST || true
-	else
-		echo "No orphaned packages to remove."
-	fi
-
     	# Standard cleanup
 	zypper clean --all
 	rm -rf /var/cache/zypp/packages/*
