@@ -6,16 +6,12 @@ It provides two distinct build pipelines, organized by build type:
 1.  **Customize from Base Box:** (Fast) Takes an existing box from Vagrant Cloud (e.g., `generic/ubuntu2404`) and provisions it.
 2.  **Build from ISO:** (Slow) Builds a box from scratch using an OS installer ISO and an unattended installation.
 
-All builds are automated using GitHub Actions and a master Packer template.
+All builds are executed locally using the `packer` CLI and a master Packer template.
 
 ## 🏗️ Repository Structure
 
 This repository uses a refactored structure to separate build types and keep templates DRY (Don't Repeat Yourself).
 
-*   `.github/`
-    *   `workflows/`
-        *   `build_from_box.yml`: Workflow for customizing boxes.
-        *   `build_from_iso.yml`: Workflow for building boxes from scratch.
 *   `os_configs/`
     *   `<os_name>/` (e.g., `ubuntu`, `alpine`)
         *   `<os_version>/` (e.g., `24.04`, `3.20`)
@@ -34,38 +30,75 @@ This repository uses a refactored structure to separate build types and keep tem
 
 ---
 
+## 🛠️ Supported Providers & Architectures
+
+The following table summarizes the supported combinations of providers, architectures, and build methods:
+
+| Provider | Build from ISO (`amd64`) | Build from ISO (`arm64`) | Customize from Box (Both) |
+| :--- | :---: | :---: | :---: |
+| **VirtualBox** | ✅ (`virtualbox-iso.amd64`) | ✅ (`virtualbox-iso.arm64`) | ✅ (`vagrant.virtualbox`) |
+| **VMware** | ✅ (`vmware-iso.amd64`) | ✅ (`vmware-iso.arm64`) | ✅ (`vagrant.vmware`) |
+| **QEMU** | ✅ (`qemu.amd64`) | ✅ (`qemu.arm64`) | ✅ (`vagrant.qemu`) |
+| **UTM** | ❌ | ✅ (`utm-iso.arm64`) | ✅ (`vagrant.utm`) |
+| **Libvirt** | ❌* | ❌* | ✅ (`vagrant.libvirt`) |
+
+*\* Note: Boxes for Libvirt can be generated from the `qemu` ISO builds, as the post-processor packages the QEMU image into a libvirt-compatible Vagrant box.*
+
+---
+
 ## 🚀 How to Build a Box
 
-There are two separate workflows. Choose the one that matches your goal.
+First, initialize Packer to download the required plugins:
+
+```bash
+packer init template.pkr.hcl
+```
+
+There are two separate methods to build a box. Choose the one that matches your goal.
 
 ### Method 1: Customize an Existing Box (Fast)
 
 Use this to apply custom provisioning to an existing Vagrant Cloud box.
 
-1.  Go to the **"Actions"** tab in the repository.
-2.  In the left sidebar, click on the **"Build Vagrant Boxes (from other boxes)"** workflow.
-3.  Click the **"Run workflow"** dropdown button.
-4.  Select the **`distro`** you want to build (e.g., `ubuntu-24.04`). This must match a corresponding directory in `os_configs/`.
-5.  Select the **`architecture`** (`amd64` or `arm64`).
-6.  Select the **`provider`** (`virtualbox`, `vmware`, or `libvirt`).
-7.  Click the green **"Run workflow"** button.
+Run the `packer build` command, specifying the appropriate builder (`vagrant.<provider>`) and variable files.
+
+For example, to build an `ubuntu-24.04` box for `amd64` using `virtualbox`:
+
+```bash
+packer build \
+  -only=vagrant.virtualbox \
+  -var="build_arch=amd64" \
+  -var-file="os_configs/ubuntu/24.04/iso/common.pkrvars.hcl" \
+  -var-file="os_configs/ubuntu/24.04/box/box.pkrvars.hcl" \
+  template.pkr.hcl
+```
+
+*Note: You may need to provide variables like `execute_command` and `shutdown_command` depending on your OS configuration.*
+
+Available builders for customizing boxes are: `vagrant.virtualbox`, `vagrant.vmware`, `vagrant.libvirt`, `vagrant.qemu`, and `vagrant.utm`.
 
 ### Method 2: Build from an ISO (Slow)
 
 Use this to create a new box from an OS installer ISO.
 
-1.  Go to the **"Actions"** tab.
-2.  In the left sidebar, click on the **"Build Vagrant Boxes (from ISO)"** workflow.
-3.  Click the **"Run workflow"** dropdown button.
-4.  Select the **`distro`** (e.g., `ubuntu-24.04`, `rocky-9`). This must match a directory in `os_configs/`.
-5.  Optionally, specify the **`iso_version`** to build (e.g., `24.04.3`). If left empty, the latest version will be used.
-6.  Select the **`architecture`** (`amd64` or `arm64`).
-7.  Select the **`provider`** (`virtualbox-iso`, `vmware-iso`, or `qemu`).
-8.  Click the green **"Run workflow"** button.
+Run the `packer build` command, specifying the appropriate builder (`<provider>.amd64` or `<provider>.arm64`) and the ISO variable files.
 
-### Downloading the Box
+For example, to build an `ubuntu-24.04` box from ISO for `amd64` using `qemu`:
 
-After a workflow is complete, you can download your `.box` file from the **"Artifacts"** section on that workflow's summary page. Artifacts are automatically deleted after 14 days.
+```bash
+packer build \
+  -only=qemu.amd64 \
+  -var="build_arch=amd64" \
+  -var-file="os_configs/ubuntu/24.04/iso/common.pkrvars.hcl" \
+  -var-file="os_configs/ubuntu/24.04/iso/versions/24.04.3.pkrvars.hcl" \
+  template.pkr.hcl
+```
+
+Available ISO builders include: `virtualbox-iso.amd64`, `virtualbox-iso.arm64`, `vmware-iso.amd64`, `vmware-iso.arm64`, `qemu.amd64`, `qemu.arm64`, and `utm-iso.arm64`.
+
+### Retrieving the Box
+
+Once the build is successfully completed, the output `.box` file will be generated in your current working directory (e.g., `ubuntu-24.04-amd64-24.04.3-qemu.box`).
 
 ---
 
@@ -85,7 +118,6 @@ After a workflow is complete, you can download your `.box` file from the **"Arti
       "os_configs/debian/12/box/scripts/provision.sh"
     ]
     ```
-4.  Go to `.github/workflows/build_from_box.yml` and add `debian-12` to the `options` list for the `distro` input.
 
 ### Adding a "Build from ISO" Configuration (e.g., Fedora 40)
 
@@ -113,7 +145,6 @@ After a workflow is complete, you can download your `.box` file from the **"Arti
     iso_checksum_amd64 = "sha256:..."
     # ... other version-specific variables ...
     ```
-6.  Go to `.github/workflows/build_from_iso.yml` and add `fedora-40` to the `options` list for the `distro` input.
 
 ## 📜 License
 
