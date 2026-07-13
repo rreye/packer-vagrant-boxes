@@ -6,36 +6,43 @@ if [ -f /etc/sudoers.d/_packer_env ]; then
   rm -f /etc/sudoers.d/_packer_env
 fi
 
-if [ -f "/usr/bin/dnf" ]; then
+DISTRO_ID=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+echo "==> Detecting distro: $DISTRO_ID"
+
+case "$DISTRO_ID" in
+    rocky|rhel|centos|almalinux|fedora)  
 	echo "==> Cleaning (RHEL/Fedora/Alma/Rocky)..."
 	# Disable and remove kdump
 	systemctl stop kdump || true
 	systemctl disable kdump || true
-	systemctl mask kdump
+	systemctl mask kdump || true
 	rm -f /etc/kdump.conf /etc/sysconfig/kdump
-	dnf -y remove kexec-tools
+	dnf -y remove kexec-tools || true
 	
 	# Purge old kernels
-	dnf -y remove "$(dnf repoquery --installonly --latest-limit=-1 -q)"
+	dnf -y remove "$(dnf repoquery --installonly --latest-limit=-1 -q)" || true
 	
 	# Remove linux firmware
 	distro="$(rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-')"
 	if [ "$distro" != 'oraclelinux' ]; then
-  		dnf -y remove linux-firmware
+  		dnf -y remove linux-firmware || true
 	fi
 	
 	# Standard cleanup
 	dnf autoremove -y
 	dnf clean all --enablerepo=\*
 	rm -rf /var/cache/dnf/*
-elif [ -f "/usr/bin/apt-get" ]; then
+	
+	;;
+	
+    ubuntu|debian)
 	echo "==> Cleaning (Debian/Ubuntu)..."
 	# Disable and remove kdump
 	systemctl stop kdump-tools || true
 	systemctl disable kdump-tools || true
-	systemctl mask kdump-tools
+	systemctl mask kdump-tools || true
 	rm -f /etc/default/kdump-tools
-	apt-get -y purge kdump-tools linux-crashdump
+	apt-get -y purge kdump-tools linux-crashdump || true
 	
 	# Purge old kernels
 	dpkg --list | awk '{ print $2 }' \
@@ -58,27 +65,30 @@ _EOF_
 	apt-get autoclean
 	rm -rf /var/lib/apt/lists/*
 	rm -rf /var/cache/apt/archives/*
-elif [ -f "/usr/bin/zypper" ]; then
+	
+	;;
+
+    opensuse*|suse|sles)
 	echo "==> Cleaning (SUSE/openSUSE)..."
 	# Disable and remove kdump
 	systemctl stop kdump || true
 	systemctl disable kdump || true
-	systemctl mask kdump
+	systemctl mask kdump || true
 	rm -f /etc/sysconfig/kdump
-	zypper -n rm -u kdump
+	zypper -n rm -u kdump || true
 	
 	# Purge old kernels
-	zypper -n purge-kernels
+	zypper -n purge-kernels || true
 	
 	# Remove linux firmware
-	zypper -n rm -u kernel-firmware
+	zypper -n rm -u kernel-firmware || true
 	
 	# Remove orphaned packages
 	ORPHANS=$(zypper -x -q packages --orphaned | grep '<solvable' | grep -o 'name="[^"]*"' | cut -d'"' -f2)
 	if [ -n "$ORPHANS" ]; then
 	    CLEAN_LIST=$(echo "$ORPHANS" | tr '\n' ' ')
 		echo "Removing orphaned packages: $CLEAN_LIST"
-		zypper -n rm -u $CLEAN_LIST
+		zypper -n rm -u $CLEAN_LIST || true
 	else
 		echo "No orphaned packages to remove."
 	fi
@@ -86,14 +96,23 @@ elif [ -f "/usr/bin/zypper" ]; then
     	# Standard cleanup
 	zypper clean --all
 	rm -rf /var/cache/zypp/packages/*
-elif [ -f "/sbin/apk" ]; then
+	
+	;;
+
+    alpine)
 	echo "==> Cleaning (Alpine)..."
 	# Remove linux firmware
-	apk del linux-firmware
+	apk del linux-firmware || true
 	# Standard cleanup
 	apk cache clean
 	rm -rf /var/cache/apk/*
-fi
+	
+	;;
+    *)
+        echo "Distro unknown: $DISTRO_ID"
+        exit 1
+        ;;
+esac
 
 # Remove temporary files, logs and other files
 rm -rf /tmp/* /var/tmp/*

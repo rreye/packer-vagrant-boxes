@@ -506,10 +506,18 @@ build {
     timeout         = "30m"
   }
 
+  provisioner "file" {
+    source      = "${path.root}/scripts/common/grub_helpers.sh"
+    destination = "/tmp/grub_helpers.sh"
+  }
+  
   # --- Bootloader config ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/bootloader.sh"]
+    scripts = [
+      "${path.root}/scripts/common/security.sh",
+      "${path.root}/scripts/common/bootloader.sh"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
@@ -609,18 +617,13 @@ build {
     timeout         = "30m"
   }
 
-  # --- Common cleanup ---
+  # --- Common cleanup and minimize box size ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/cleanup.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-  
-   # --- Minimize box size ---
-  provisioner "shell" {
-    execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/wipe.sh"]
+    scripts = [
+      "${path.root}/scripts/common/cleanup.sh",
+      "${path.root}/scripts/common/wipe.sh"
+    ]
     expect_disconnect = true
     timeout         = "30m"
   }
