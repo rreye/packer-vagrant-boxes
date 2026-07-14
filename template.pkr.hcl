@@ -179,7 +179,8 @@ locals {
   box_builders = [
     "vagrant.virtualbox", 
     "vagrant.vmware", 
-    "vagrant.libvirt"
+    "vagrant.libvirt",
+    "vagrant.qemu"
   ]
 }
 
