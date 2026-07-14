@@ -106,6 +106,7 @@ esac
 
 # Remove temporary files, logs and other files
 rm -rf /tmp/* /var/tmp/*
+rm -f /usr/lib/motd.d/welcome /etc/motd
 find /var/log -type f -exec sh -c '> "$1"' _ {} \;
 cat /dev/null > /var/log/wtmp
 cat /dev/null > /var/log/lastlog

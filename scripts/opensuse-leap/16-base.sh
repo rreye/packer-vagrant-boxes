@@ -16,7 +16,7 @@ if [ -f /bin/bash ]; then
     echo 'export LANGUAGE=es_ES.UTF-8' >> $HOME_DIR/.bashrc
 fi
 
-rm -f /usr/lib/motd.d/welcome
+rm -f /usr/lib/motd.d/welcome /etc/motd
 rm -f /root/agama-profile.json
 # Limpiar los logs de instalación del sistema
 rm -rf /var/log/agama/*
