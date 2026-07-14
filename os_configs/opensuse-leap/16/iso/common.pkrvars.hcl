@@ -16,7 +16,7 @@ boot_command_amd64 = [
 ]
 
 boot_command_arm64 = [
-    "<wait2s><down><wait>e<wait>",
+    "<wait2s>e<wait>",
     "<down><down><down><down><end><wait>",
     " inst.auto=http://{{ .HTTPIP }}:{{ .HTTPPort }}/agama-profile.json", # Add profile URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names

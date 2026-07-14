@@ -15,10 +15,11 @@ boot_command_amd64 = [
 ]
 
 boot_command_arm64 = [
-    "<wait2s><down><wait>",
-    " inst.auto=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoinst.xml", # Add URL parameter
+    "<wait2s>e<wait>",
+    "<down><down><down><down><end><wait>",
+    " autoyast=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoinst.xml", # Add URL parameter
     " net.ifnames=0 biosdevname=0", # Consistent network names
-    "<wait><enter>" # Start boot
+    "<wait><leftCtrlOn><wait>x<wait><leftCtrlOff>" # Start boot
 ]
 
 # Execute command
