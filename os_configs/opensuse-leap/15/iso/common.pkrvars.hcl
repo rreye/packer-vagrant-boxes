@@ -4,7 +4,7 @@ box_name = "opensuse-leap-15"
 guest_os_type_vbox_amd64   = "OpenSUSE_Leap_64"
 guest_os_type_vbox_arm64   = "OpenSUSE_Leap_arm64"
 guest_os_type_vmware_amd64 = "opensuse-64"
-guest_os_type_vmware_arm64 = "arm-opensuse-64"
+guest_os_type_vmware_arm64 = "arm-sles15-64"
 
 # Kickstart configuration
 boot_command_amd64 = [
