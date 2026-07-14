@@ -130,14 +130,12 @@ variable "build_utm" {
 }
 
 # --- 2. Local Variables ---
-# (Helper variables derived from input)
 locals {
   # Select ISO URL and checksum based on build_arch
   iso_url = var.build_arch == "arm64" ? var.iso_url_arm64 : var.iso_url_amd64
   raw_checksum = var.build_arch == "arm64" ? var.iso_checksum_arm64 : var.iso_checksum_amd64
   parts = (local.raw_checksum == null || local.raw_checksum == "") ? [] : split(":", local.raw_checksum)
   iso_checksum = length(local.parts) == 0 ? "none" : (length(local.parts) == 2 ? local.parts[1] : local.raw_checksum)
-
   base_dir = "${path.cwd}/${var.http_directory}"
   
   # Scan static files and serves them as is
@@ -160,6 +158,29 @@ locals {
   
   # Merge everything into the final map
   http_content_dynamic = merge(local.static_files, local.template_files, local.ubuntu_meta_data)
+  
+  # Create list of provision scripts
+  all_provision_scripts = concat(
+    # Rutas relativas intactas -> ["scripts/*"]
+    var.provision_version_scripts,
+    # Rutas transformadas -> ["${path.root}/scripts/*"]
+    [for script_path in var.provision_scripts : "${path.root}/scripts/${script_path}"],
+    # Rutas relativas intactas -> ["scripts/*"]
+    var.box_provision_scripts
+  )
+  
+  # Builders
+  iso_builders = [
+    "virtualbox-iso.amd64", "virtualbox-iso.arm64",
+    "vmware-iso.amd64", "vmware-iso.arm64",
+    "qemu.amd64", "qemu.arm64", "utm-iso.arm64"
+  ]
+  
+  box_builders = [
+    "vagrant.virtualbox", 
+    "vagrant.vmware", 
+    "vagrant.libvirt"
+  ]
 }
 
 # --- 3. Builders (Sources) ---
@@ -489,69 +510,40 @@ build {
     "source.vagrant.utm"
   ]
 
-  # Provisioning steps (common logic)
-  provisioner "shell" {
-    # Wait for SSH to be ready after OS install
-    pause_after = "5s"
-    inline = [
-        "echo 'SSH is up. Starting provisioning...'"
-    ]
-  }
-
-  # --- SSHD ---
-  provisioner "shell" {
-    execute_command = var.execute_command
-    scripts = ["${path.root}/scripts/common/sshd.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-
+  # --- Copy GRUB helpers ---
   provisioner "file" {
-    source      = "${path.root}/scripts/common/grub_helpers.sh"
+    except = local.box_builders
+    source = "${path.root}/scripts/common/grub_helpers.sh"
     destination = "/tmp/grub_helpers.sh"
   }
   
-  # --- Bootloader config ---
+  # --- Basic setup (SSH, security modules and bootloader) ---
   provisioner "shell" {
+    except = local.box_builders
     execute_command = var.execute_command
     scripts = [
+      "${path.root}/scripts/common/sshd.sh",
       "${path.root}/scripts/common/security.sh",
       "${path.root}/scripts/common/bootloader.sh"
     ]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
   
-  # --- OS specific-version provisioning ---
+  # --- OS provisioning ---
   provisioner "shell" {
     execute_command = var.execute_command
-    scripts = length(var.provision_version_scripts) > 0 ? [for script_path in var.provision_version_scripts : "${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
+    scripts = length(local.all_provision_scripts) > 0 ? local.all_provision_scripts : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
   
-  # --- OS base provisioning ---
-  provisioner "shell" {
-    execute_command = var.execute_command
-    scripts = length(var.provision_scripts) > 0 ? [for script_path in var.provision_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-
-  # --- Box customization ---
-  provisioner "shell" {
-    execute_command = var.execute_command
-    scripts = length(var.box_provision_scripts) > 0 ? [for script_path in var.box_provision_scripts : "${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
-    expect_disconnect = true
-    timeout         = "30m"
-  }
-  
-  # --- Vagrant user config ---
+  # --- Vagrant user configuration ---
   provisioner "shell" {
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/vagrant.sh"]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
   
   # --- Force reboot ---
@@ -559,20 +551,20 @@ build {
     pause_before = "5s"
     pause_after = "5s"
     inline = [
-      "echo 'Rebooting in background...'",
+      "echo 'Rebooting...'",
       "nohup ${var.reboot_command}  && sleep 100"
     ]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
   
-  # --- Provider specific ---
+  # --- VirtualBox guest tools ---
   provisioner "shell" {
     only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64", "vagrant.virtualbox"]
     execute_command = var.execute_command
     scripts = ["${path.root}/scripts/common/guest_tools_virtualbox.sh"]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
 
   # --- Force reboot ---
@@ -581,14 +573,14 @@ build {
     pause_before = "5s"
     pause_after = "5s"
     inline = [
-      "echo 'Rebooting in background...'",
+      "echo 'Rebooting...'",
       "nohup ${var.reboot_command} && sleep 100"
     ]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
 
-  # --- Provider specific ---
+  # --- VMware guest tools ---
   provisioner "shell" {
     only = ["vmware-iso.amd64", "vmware-iso.arm64", "vagrant.vmware"]
     execute_command = var.execute_command
@@ -597,7 +589,7 @@ build {
     timeout         = "30m"
   }
 
-  # --- Provider specific ---
+  # --- QEMU guest tools ---
   provisioner "shell" {
     only = ["qemu.amd64", "qemu.arm64", "vagrant.libvirt", "vagrant.qemu", "utm-iso.arm64"]
     execute_command = var.execute_command
@@ -606,15 +598,16 @@ build {
     ]
     scripts = ["${path.root}/scripts/common/guest_tools_qemu.sh"]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
 
   # --- OS base cleanup ---
   provisioner "shell" {
+    except = local.box_builders
     execute_command = var.execute_command
     scripts = length(var.cleanup_scripts) > 0 ? [for script_path in var.cleanup_scripts : "${path.root}/scripts/${script_path}"] : ["${path.root}/scripts/common/noop.sh"]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
 
   # --- Common cleanup and minimize box size ---
@@ -625,7 +618,7 @@ build {
       "${path.root}/scripts/common/wipe.sh"
     ]
     expect_disconnect = true
-    timeout         = "30m"
+    timeout = "30m"
   }
   
   # --- 5. Post-Processing ---
@@ -633,15 +626,15 @@ build {
   # VirtualBox
   # -----------------------
   post-processor "vagrant" {
-    only     = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
+    only = ["virtualbox-iso.amd64", "virtualbox-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
-    compression_level    = 9
-    keep_input_artifact  = false
+    compression_level = 9
+    keep_input_artifact = false
     vagrantfile_template = (length(regexall("alpine", lower(var.box_name))) > 0 && var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-rsync" : null
   }
   
   post-processor "shell-local" {
-    only   = ["vagrant.virtualbox"]
+    only = ["vagrant.virtualbox"]
     inline = [
       "mv output-virtualbox/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-virtualbox.box"
     ]
@@ -651,15 +644,15 @@ build {
   # VMware (Desktop/Fusion/Workstation)
   # -----------------------
   post-processor "vagrant" {
-    only     = ["vmware-iso.amd64", "vmware-iso.arm64"]
+    only = ["vmware-iso.amd64", "vmware-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
-    compression_level    = 9
-    keep_input_artifact  = false
+    compression_level = 9
+    keep_input_artifact = false
     vagrantfile_template = split("-", var.box_name)[0] == "alpine" ? "${path.root}/vagrant/vagrantfile-rsync" : null
   }
   
   post-processor "shell-local" {
-    only   = ["vagrant.vmware"]
+    only = ["vagrant.vmware"]
     inline = [
       "mv output-vmware/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-vmware_desktop.box"
     ]
@@ -671,16 +664,16 @@ build {
   # post-processors (plural) creates a sequential pipeline
   post-processors {
     post-processor "vagrant" {
-      only                = ["qemu.amd64", "qemu.arm64"]
-      output              = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
-      compression_level   = 9
+      only = ["qemu.amd64", "qemu.arm64"]
+      output = "${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
+      compression_level = 9
       keep_input_artifact = false
       vagrantfile_template = (var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-rsync" : null
     }
 
     # Change the provider to qemu
     post-processor "shell-local" {
-      only   = ["qemu.arm64"]
+      only = ["qemu.arm64"]
       inline = [
         "mv ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box"
       ]
@@ -688,14 +681,14 @@ build {
   }
   
   post-processor "shell-local" {
-    only   = ["vagrant.libvirt"]
+    only = ["vagrant.libvirt"]
     inline = [
       "mv output-libvirt/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box"
     ]
   }
 
   post-processor "shell-local" {
-    only   = ["vagrant.qemu"]
+    only = ["vagrant.qemu"]
     inline = [
       "mv output-qemu/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box"
     ]
@@ -707,13 +700,13 @@ build {
   post-processor "utm-vagrant" {
     only = ["utm-iso.arm64"]
     output = "${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
-    compression_level    = 9
-    keep_input_artifact  = false
+    compression_level = 9
+    keep_input_artifact = false
     vagrantfile_template = split("-", var.box_name)[0] == "rocky" ? "${path.root}/vagrant/vagrantfile-utm-rhel" : "${path.root}/vagrant/vagrantfile-utm"
   }
   
   post-processor "shell-local" {
-    only   = ["vagrant.utm"]
+    only = ["vagrant.utm"]
     inline = [
       "mv output-utm/package.box ${var.box_name}-${var.build_arch}-${var.box_version}-utm.box"
     ]
