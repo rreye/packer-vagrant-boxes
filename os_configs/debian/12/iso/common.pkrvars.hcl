@@ -46,4 +46,4 @@ shutdown_command = "echo 'vagrant' | sudo -S shutdown -h now"
 # Scripts to run after OS install
 provision_scripts = ["debian/12-base.sh"]
 # Scripts to run before box bulding
-cleanup_scripts = ["debian/cleanup_repos.sh"]
+cleanup_scripts = ["debian/setup_repos.sh"]
