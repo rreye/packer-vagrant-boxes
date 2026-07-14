@@ -32,4 +32,4 @@ shutdown_command = "echo 'vagrant' | sudo -S /sbin/halt -h -p"
 # Scripts to run after OS install
 provision_scripts = ["opensuse-leap/15-base.sh"]
 # Scripts to run before box bulding
-cleanup_scripts = []
+cleanup_scripts = ["opensuse-leap/15-setup_repos.sh"]

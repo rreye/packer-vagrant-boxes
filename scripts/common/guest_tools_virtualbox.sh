@@ -34,8 +34,7 @@ elif [ -f "/usr/bin/apt-get" ]; then
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
         zypper -n rm -u virtualbox-guest-tools virtualbox-guest-x11 virtualbox-kmp-default || true
-        CURRENT_KERNEL=$(uname -r | sed 's/-default//')
-	zypper install -y --oldpackage cpp gcc make bzip2 tar kernel-macros "kernel-default-devel-${CURRENT_KERNEL}*" "kernel-devel-${CURRENT_KERNEL}*"
+	zypper install -y --oldpackage cpp gcc make bzip2 tar kernel-macros "kernel-default-devel-${KERNEL_VERSION}*" "kernel-devel-${KERNEL_VERSION}*"
 elif [ -f "/sbin/apk" ]; then
 	if [ "$ARCHITECTURE" = "aarch64" ]; then
 		echo "==> Alpine ARM64 detected. No Guest virtualbox tools available"
@@ -91,7 +90,7 @@ if [ -f "/bin/dnf" ]; then
 elif [ -f "/usr/bin/apt-get" ]; then
 	apt-get purge -y --auto-remove build-essential gcc g++ make libc6-dev dkms linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
-	zypper -n rm -u kernel-default-devel kernel-devel kernel-macros cpp gcc make
+	zypper -n rm -u cpp gcc make kernel-macros "kernel-default-devel-${KERNEL_VERSION}*" "kernel-devel-${KERNEL_VERSION}*"
 fi
 
 echo "removing leftover logs"
