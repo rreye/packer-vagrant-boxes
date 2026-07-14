@@ -68,7 +68,7 @@ grubby --update-kernel ALL --args selinux=0
 
 %{ if is_utm }
 # Configure the second interface for UTM
-nmcli con add type ethernet ifname eth1 con-name eth1 ipv4.method auto
+nmcli con add type ethernet ifname eth1 con-name eth1 ipv4.method auto ipv6.method ignore
 %{ endif }
 
 echo "==> Kickstart post-install finished"
