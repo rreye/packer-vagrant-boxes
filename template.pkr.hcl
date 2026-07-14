@@ -673,11 +673,18 @@ build {
       vagrantfile_template = (var.build_arch == "arm64") ? "${path.root}/vagrant/vagrantfile-rsync" : null
     }
 
-    # Change the provider to qemu
+    # Create box for qemu provider
     post-processor "shell-local" {
-      only = ["qemu.arm64"]
+      only = ["qemu.amd64", "qemu.arm64"]
       inline = [
-        "mv ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box"
+        "echo '==> Mutating libvirt box to vagrant-qemu provider...'",
+        "mkdir -p temp-box",
+        "tar -xzf builds/${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C temp-box/",
+        "sed -i.bak 's/libvirt/qemu/g' temp-box/metadata.json",
+        "rm -f temp-box/metadata.json.bak",
+        "tar -czf builds/${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box -C temp-box .",
+        "rm -rf temp-box",
+        "echo '==> QEMU box created successfully'"
       ]
     }
   }
