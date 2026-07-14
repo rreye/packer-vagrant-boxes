@@ -180,6 +180,7 @@ locals {
     "vagrant.virtualbox", 
     "vagrant.vmware", 
     "vagrant.libvirt",
+    "vagrant.utm",
     "vagrant.qemu"
   ]
 }
