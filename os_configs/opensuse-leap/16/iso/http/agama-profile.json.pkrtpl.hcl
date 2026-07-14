@@ -36,7 +36,13 @@
         "name": "vagrant_sudo_ssh",
         "chroot": true,
         "content": "#!/bin/bash\necho 'vagrant ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/vagrant\nchmod 0440 /etc/sudoers.d/vagrant\nsystemctl enable sshd"
+      }%{ if is_utm },
+      {
+        "name": "utm_network_config",
+        "chroot": true,
+        "content": "#!/bin/bash\nnmcli con add type ethernet ifname eth1 con-name eth1 ipv4.method auto ipv6.method ignore"
       }
+%{ endif }
     ]
   }
 }

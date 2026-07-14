@@ -23,6 +23,20 @@
       <hostname>opensuse</hostname>
       <dhcp_hostname config:type="boolean">false</dhcp_hostname>
     </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+%{ if is_utm }
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth1</device>
+        <startmode>auto</startmode>
+      </interface>
+%{ endif }
+    </interfaces>
   </networking>
   
   <users config:type="list">
