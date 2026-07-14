@@ -679,10 +679,10 @@ build {
       inline = [
         "echo '==> Mutating libvirt box to vagrant-qemu provider...'",
         "mkdir -p temp-box",
-        "tar -xzf builds/${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C temp-box/",
+        "tar -xzf ${var.box_name}-${var.build_arch}-${var.box_version}-libvirt.box -C temp-box/",
         "sed -i.bak 's/libvirt/qemu/g' temp-box/metadata.json",
         "rm -f temp-box/metadata.json.bak",
-        "tar -czf builds/${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box -C temp-box .",
+        "tar -czf ${var.box_name}-${var.build_arch}-${var.box_version}-qemu.box -C temp-box .",
         "rm -rf temp-box",
         "echo '==> QEMU box created successfully'"
       ]
