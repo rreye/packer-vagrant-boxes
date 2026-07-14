@@ -34,7 +34,8 @@ elif [ -f "/usr/bin/apt-get" ]; then
 	apt-get install -y build-essential dkms bzip2 tar linux-headers-"$KERNEL_VERSION"
 elif [ -f "/usr/bin/zypper" ]; then
         zypper -n rm -u virtualbox-guest-tools virtualbox-guest-x11 virtualbox-kmp-default || true
-	zypper install -y cpp gcc make bzip2 tar kernel-default-devel kernel-devel kernel-macros
+        CURRENT_KERNEL=$(uname -r | sed 's/-default//')
+	zypper install -y --oldpackage cpp gcc make bzip2 tar kernel-macros "kernel-default-devel-${CURRENT_KERNEL}*" "kernel-devel-${CURRENT_KERNEL}*"
 elif [ -f "/sbin/apk" ]; then
 	if [ "$ARCHITECTURE" = "aarch64" ]; then
 		echo "==> Alpine ARM64 detected. No Guest virtualbox tools available"
