@@ -56,7 +56,7 @@ packer init template.pkr.hcl
 
 There are two separate methods to build a box. Choose the one that matches your goal.
 
-### Method 1: Customize an Existing Box (Fast)
+### Method 1: Customize an Existing Box
 
 Use this to apply custom provisioning to an existing Vagrant Cloud box.
 
@@ -68,7 +68,6 @@ For example, to build an `ubuntu-24.04` box for `amd64` using `virtualbox`:
 packer build \
   -only=vagrant.virtualbox \
   -var="build_arch=amd64" \
-  -var-file="os_configs/ubuntu/24.04/iso/common.pkrvars.hcl" \
   -var-file="os_configs/ubuntu/24.04/box/box.pkrvars.hcl" \
   template.pkr.hcl
 ```
@@ -77,7 +76,7 @@ packer build \
 
 Available builders for customizing boxes are: `vagrant.virtualbox`, `vagrant.vmware`, `vagrant.libvirt`, `vagrant.qemu`, and `vagrant.utm`.
 
-### Method 2: Build from an ISO (Slow)
+### Method 2: Build from an ISO
 
 Use this to create a new box from an OS installer ISO.
 
@@ -95,6 +94,8 @@ packer build \
 ```
 
 Available ISO builders include: `virtualbox-iso.amd64`, `virtualbox-iso.arm64`, `vmware-iso.amd64`, `vmware-iso.arm64`, `qemu.amd64`, `qemu.arm64`, and `utm-iso.arm64`.
+
+*Note: When using UTM builder (utm-iso.arm64), you also need to provide this specific variable `-var="build-utm=true"`.*
 
 ### Retrieving the Box
 
@@ -131,9 +132,17 @@ Once the build is successfully completed, the output `.box` file will be generat
     guest_os_type_vbox = "Fedora_64"
     # ... other common variables ...
 
-    boot_command = [
+    boot_command_amd64 = [
       "<tab>",
       " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg",
+      # ... other specific commands ...
+      "<enter>"
+    ]
+    
+    boot_command_arm64 = [
+      "<tab>",
+      " inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg",
+      # ... other specific commands ...
       "<enter>"
     ]
     ```
