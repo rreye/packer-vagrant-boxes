@@ -3,8 +3,8 @@
 packer {
   required_plugins {
     virtualbox = { version = ">= 1.1.5", source = "github.com/hashicorp/virtualbox" }
-    vmware     = { version = ">= 2.1.3", source = "github.com/hashicorp/vmware" }
-    qemu       = { version = ">= 1.1.5", source = "github.com/hashicorp/qemu" }
+    vmware     = { version = ">= 2.1.5", source = "github.com/hashicorp/vmware" }
+    qemu       = { version = ">= 1.1.6", source = "github.com/hashicorp/qemu" }
     utm        = { version = ">= v4.0.0", source  = "github.com/naveenrajm7/utm"}
     vagrant    = { version = ">= 1.1.7", source = "github.com/hashicorp/vagrant" }
   }
